@@ -13,17 +13,38 @@ import { VendorPortal } from './components/VendorPortal';
 import { PremiumModal } from './components/PremiumModal';
 import { MoodBoard } from './components/MoodBoard';
 import { VenueFinder } from './components/VenueFinder';
-import { Expense, ExpenseCategory, ExpenseStatus, SavingsPlan, Guest, GuestSide, Table, TableShape, InvitationData, WebsiteData, GiftItem, Task, Vendor, Inspiration } from './types';
-import { Heart, LayoutDashboard, List, Calendar, MessageSquareText, Download, Trash2, Edit2, Plus, Calculator, CheckCircle2, Check, DollarSign, Clock, Users, Armchair, Palette, Globe, Gift, ListTodo, Store, Crown, Briefcase, Sparkles, MapPin } from 'lucide-react';
+import { Expense, ExpenseCategory, ExpenseStatus, SavingsPlan, Guest, GuestSide, Table, InvitationData, WebsiteData, GiftItem, Task, Vendor, Inspiration } from './types';
+import { Heart, LayoutDashboard, List, Calendar, MessageSquareText, Download, Trash2, Edit2, Plus, Calculator, CheckCircle2, Check, DollarSign, Clock, Users, Armchair, Palette, Globe, Gift, ListTodo, Store, Crown, Briefcase, Sparkles, MapPin, Menu, X, ChevronRight } from 'lucide-react';
 
 const STORAGE_KEY = 'wedding_planner_data';
+
+// Navigation Configuration
+const NAV_ITEMS = [
+  { id: 'dashboard', label: 'Visão Geral', icon: LayoutDashboard },
+  { id: 'planning', label: 'Planos & Metas', icon: Calculator },
+  { id: 'advisor', label: 'Consultora IA', icon: MessageSquareText },
+  { id: 'tasks', label: 'Tarefas', icon: ListTodo },
+  { id: 'expenses', label: 'Despesas', icon: List },
+  { id: 'venues', label: 'Localizador', icon: MapPin },
+  { id: 'vendors', label: 'Fornecedores', icon: Store },
+  { id: 'guests', label: 'Convidados', icon: Users },
+  { id: 'seating', label: 'Mesas', icon: Armchair },
+  { id: 'invites', label: 'Convites', icon: Palette },
+  { id: 'website', label: 'Site', icon: Globe },
+  { id: 'registry', label: 'Presentes', icon: Gift },
+  { id: 'moodboard', label: 'Inspirações', icon: Sparkles },
+] as const;
+
+type TabId = typeof NAV_ITEMS[number]['id'];
 
 const App: React.FC = () => {
   // Global Mode State: Couple (Client) vs Vendor (Business)
   const [userType, setUserType] = useState<'couple' | 'vendor'>('couple');
 
   // State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'tasks' | 'guests' | 'seating' | 'invites' | 'website' | 'registry' | 'planning' | 'advisor' | 'vendors' | 'moodboard' | 'venues'>('dashboard');
+  const [activeTab, setActiveTab] = useState<TabId>('dashboard');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [guests, setGuests] = useState<Guest[]>([]);
   const [tables, setTables] = useState<Table[]>([]);
@@ -477,7 +498,7 @@ const App: React.FC = () => {
                   className="bg-white/90 backdrop-blur text-rose-600 px-4 py-2 rounded-full font-bold shadow-md hover:bg-white flex items-center gap-2 text-sm border border-rose-100"
                  >
                      <Heart size={16} fill="currentColor" />
-                     Voltar para Área dos Noivos
+                     <span className="hidden sm:inline">Voltar para Área dos Noivos</span>
                  </button>
              </div>
              <VendorPortal />
@@ -500,196 +521,138 @@ const App: React.FC = () => {
         }} 
       />
 
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-white flex flex-col md:hidden animate-in slide-in-from-right duration-200">
+           <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white shadow-sm">
+              <div className="flex items-center gap-2 text-rose-600">
+                  <Heart className="fill-current" size={24} />
+                  <h1 className="text-lg font-bold tracking-tight text-slate-900">Menu</h1>
+              </div>
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-50"
+              >
+                  <X size={28} />
+              </button>
+           </div>
+           
+           <div className="flex-1 overflow-y-auto p-4 bg-slate-50/50">
+               <div className="grid grid-cols-1 gap-2">
+                   {NAV_ITEMS.map((item) => (
+                       <button
+                          key={item.id}
+                          onClick={() => {
+                              setActiveTab(item.id);
+                              setIsMobileMenuOpen(false);
+                          }}
+                          className={`flex items-center justify-between p-4 rounded-xl transition-all ${
+                              activeTab === item.id 
+                                ? 'bg-rose-600 text-white shadow-md' 
+                                : 'bg-white text-slate-600 border border-slate-200 hover:bg-rose-50 hover:text-rose-600'
+                          }`}
+                       >
+                          <div className="flex items-center gap-3">
+                              <item.icon size={20} />
+                              <span className="font-medium text-base">{item.label}</span>
+                          </div>
+                          <ChevronRight size={16} className={`opacity-50 ${activeTab === item.id ? 'text-white' : 'text-slate-400'}`} />
+                       </button>
+                   ))}
+               </div>
+
+               <div className="mt-8 pt-6 border-t border-slate-200 space-y-3">
+                    <button 
+                        onClick={() => { setUserType('vendor'); setIsMobileMenuOpen(false); }}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800 text-white font-medium"
+                    >
+                        <Briefcase size={20} />
+                        Área do Fornecedor
+                    </button>
+                    {!isPremium && (
+                        <button 
+                            onClick={() => { setShowPremiumModal(true); setIsMobileMenuOpen(false); }}
+                            className="w-full flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 font-bold"
+                        >
+                            <Crown size={20} />
+                            Seja Premium
+                        </button>
+                    )}
+               </div>
+           </div>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="bg-white border-b border-rose-100 sticky top-0 z-10">
+      <header className="bg-white border-b border-rose-100 sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 text-rose-600">
             <Heart className="fill-current" size={28} />
             <h1 className="text-xl font-bold tracking-tight text-slate-900">Casamento<span className="text-rose-600">Planner</span> AI</h1>
           </div>
-          <div className="flex items-center gap-4">
-             {/* Role Switcher */}
-             <button 
-                onClick={() => setUserType('vendor')}
-                className="hidden md:flex items-center gap-2 text-slate-500 hover:text-slate-800 text-sm font-medium px-3 py-1 hover:bg-slate-50 rounded-full transition-colors"
-                title="Acessar painel de empresas"
-             >
-                 <Briefcase size={16} />
-                 Sou Fornecedor
-             </button>
+          <div className="flex items-center gap-3">
+             {/* Desktop Controls */}
+             <div className="hidden md:flex items-center gap-3">
+                <button 
+                    onClick={() => setUserType('vendor')}
+                    className="flex items-center gap-2 text-slate-500 hover:text-slate-800 text-sm font-medium px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+                    title="Acessar painel de empresas"
+                >
+                    <Briefcase size={18} />
+                    <span className="hidden lg:inline">Sou Fornecedor</span>
+                </button>
 
-             {/* Premium Badge / Upsell */}
-             {!isPremium ? (
-                 <button 
-                    onClick={() => setShowPremiumModal(true)}
-                    className="hidden md:flex items-center gap-2 bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 px-3 py-1.5 rounded-full text-xs font-bold hover:brightness-105 transition-all shadow-sm"
-                 >
-                     <Crown size={14} />
-                     Seja Premium
-                 </button>
-             ) : (
-                 <div className="hidden md:flex items-center gap-2 bg-slate-900 text-amber-300 px-3 py-1.5 rounded-full text-xs font-bold border border-amber-500/30">
-                     <Crown size={14} />
-                     Membro VIP
-                 </div>
-             )}
+                {!isPremium ? (
+                    <button 
+                        onClick={() => setShowPremiumModal(true)}
+                        className="flex items-center gap-2 bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 px-3 py-2 rounded-full text-xs font-bold hover:brightness-105 transition-all shadow-sm"
+                    >
+                        <Crown size={16} />
+                        <span className="hidden lg:inline">Seja Premium</span>
+                    </button>
+                ) : (
+                    <div className="flex items-center gap-2 bg-slate-900 text-amber-300 px-3 py-1.5 rounded-full text-xs font-bold border border-amber-500/30">
+                        <Crown size={14} />
+                        <span className="hidden lg:inline">Membro VIP</span>
+                    </div>
+                )}
+             </div>
+
+             {/* Mobile Hamburger Button */}
+             <button 
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="md:hidden p-2 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+             >
+                 <Menu size={28} />
+             </button>
           </div>
         </div>
       </header>
 
-      {/* Navigation Tabs */}
-      <div className="bg-white shadow-sm">
+      {/* Navigation Tabs (Desktop Only) */}
+      <div className="hidden md:block bg-white shadow-sm">
         <div className="max-w-6xl mx-auto px-4">
-          <nav className="flex space-x-1 md:space-x-8 overflow-x-auto">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                activeTab === 'dashboard'
-                  ? 'border-rose-500 text-rose-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <LayoutDashboard size={18} />
-              Visão Geral
-            </button>
-            <button
-              onClick={() => setActiveTab('venues')}
-              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                activeTab === 'venues'
-                  ? 'border-rose-500 text-rose-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <MapPin size={18} />
-              Localizador
-            </button>
-            <button
-              onClick={() => setActiveTab('moodboard')}
-              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                activeTab === 'moodboard'
-                  ? 'border-rose-500 text-rose-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <Sparkles size={18} />
-              Inspirações
-            </button>
-            <button
-              onClick={() => setActiveTab('vendors')}
-              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                activeTab === 'vendors'
-                  ? 'border-rose-500 text-rose-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <Store size={18} />
-              Fornecedores
-            </button>
-            <button
-              onClick={() => setActiveTab('tasks')}
-              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                activeTab === 'tasks'
-                  ? 'border-rose-500 text-rose-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <ListTodo size={18} />
-              Tarefas
-            </button>
-            <button
-              onClick={() => setActiveTab('expenses')}
-              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                activeTab === 'expenses'
-                  ? 'border-rose-500 text-rose-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <List size={18} />
-              Despesas
-            </button>
-             <button
-              onClick={() => setActiveTab('guests')}
-              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                activeTab === 'guests'
-                  ? 'border-rose-500 text-rose-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <Users size={18} />
-              Convidados
-            </button>
-             <button
-              onClick={() => setActiveTab('seating')}
-              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                activeTab === 'seating'
-                  ? 'border-rose-500 text-rose-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <Armchair size={18} />
-              Mesas
-            </button>
-            <button
-              onClick={() => setActiveTab('invites')}
-              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                activeTab === 'invites'
-                  ? 'border-rose-500 text-rose-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <Palette size={18} />
-              Convites
-            </button>
-             <button
-              onClick={() => setActiveTab('registry')}
-              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                activeTab === 'registry'
-                  ? 'border-rose-500 text-rose-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <Gift size={18} />
-              Presentes
-            </button>
-            <button
-              onClick={() => setActiveTab('website')}
-              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                activeTab === 'website'
-                  ? 'border-rose-500 text-rose-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <Globe size={18} />
-              Site
-            </button>
-            <button
-              onClick={() => setActiveTab('planning')}
-              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                activeTab === 'planning'
-                  ? 'border-rose-500 text-rose-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <Calculator size={18} />
-              Planos
-            </button>
-            <button
-              onClick={() => setActiveTab('advisor')}
-              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
-                activeTab === 'advisor'
-                  ? 'border-rose-500 text-rose-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              <MessageSquareText size={18} />
-              IA
-            </button>
+          <nav className="flex space-x-2 lg:space-x-6 overflow-x-auto no-scrollbar py-1">
+            {NAV_ITEMS.map((item) => (
+                <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className={`flex items-center gap-2 py-3 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                        activeTab === item.id
+                        ? 'border-rose-500 text-rose-600'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                    }`}
+                >
+                    <item.icon size={18} />
+                    <span className="hidden lg:inline">{item.label}</span>
+                </button>
+            ))}
           </nav>
         </div>
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-6xl mx-auto px-4 py-8 w-full">
+      <main className="flex-1 max-w-6xl mx-auto px-4 py-6 w-full mb-16 md:mb-0">
         
         {/* TAB: DASHBOARD */}
         {activeTab === 'dashboard' && (
@@ -1087,12 +1050,14 @@ const App: React.FC = () => {
 
         {/* TAB: ADVISOR */}
         {activeTab === 'advisor' && (
-          <div className="max-w-3xl mx-auto">
-             <div className="mb-4 text-center">
-               <h2 className="text-2xl font-bold text-slate-800">Consultora de Casamentos</h2>
-               <p className="text-slate-500">Tire dúvidas, peça dicas de economia e organize suas ideias com IA.</p>
+          <div className="max-w-3xl mx-auto h-[calc(100vh-180px)] md:h-auto flex flex-col">
+             <div className="mb-4 text-center shrink-0">
+               <h2 className="text-xl md:text-2xl font-bold text-slate-800">Consultora de Casamentos</h2>
+               <p className="text-xs md:text-base text-slate-500">Tire dúvidas, peça dicas de economia e organize suas ideias com IA.</p>
              </div>
-             <AIAdvisor expenses={expenses} savings={savingsPlan.currentSavings} />
+             <div className="flex-1 min-h-0">
+                <AIAdvisor expenses={expenses} savings={savingsPlan.currentSavings} />
+             </div>
           </div>
         )}
 

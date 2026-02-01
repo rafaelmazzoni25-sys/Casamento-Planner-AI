@@ -111,7 +111,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ data, giftItems,
 
   // Section Toolbar Component
   const SectionToolbar = ({ id, currentAlign, currentBg }: { id: string, currentAlign?: string, currentBg?: string }) => (
-      <div className="absolute -top-10 left-0 bg-slate-800 text-white p-1 rounded-lg shadow-lg flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all z-20">
+      <div className="absolute -top-10 left-0 bg-slate-800 text-white p-1 rounded-lg shadow-lg flex items-center gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all z-20">
           <div className="flex bg-slate-700 rounded p-0.5">
               <button onClick={() => updateSectionContent(id, 'alignment', 'left')} className={`p-1.5 rounded hover:bg-slate-600 ${currentAlign === 'left' ? 'bg-slate-600' : ''}`}><AlignLeft size={14}/></button>
               <button onClick={() => updateSectionContent(id, 'alignment', 'center')} className={`p-1.5 rounded hover:bg-slate-600 ${currentAlign === 'center' ? 'bg-slate-600' : ''}`}><AlignCenter size={14}/></button>
@@ -451,7 +451,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ data, giftItems,
         {isEditing && <SectionToolbar id={section.id} currentAlign={alignment} currentBg={bgColor} />}
         
         {/* Edit Controls Overlay */}
-        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-50 bg-white/90 p-1 rounded-lg shadow-sm backdrop-blur-sm border border-slate-100">
+        <div className="absolute top-2 right-2 flex gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity z-50 bg-white/90 p-1 rounded-lg shadow-sm backdrop-blur-sm border border-slate-100">
            <div className="p-1.5 cursor-move text-slate-500 hover:text-slate-800" title="Arrastar para reordenar">
               <Move size={16} />
            </div>
@@ -470,20 +470,38 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ data, giftItems,
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)]">
+    <div className="flex flex-col h-[calc(100vh-140px)] w-full">
       
       {/* Top Toolbar */}
-      <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-center shrink-0 shadow-sm z-30">
-        <div className="flex items-center gap-2">
-           <Layout className="text-rose-600" size={24} />
-           <div>
-             <h2 className="font-bold text-slate-800">Editor do Site</h2>
-             <p className="text-xs text-slate-500 hidden md:block">Personalize seu site de casamento</p>
+      <div className="bg-white border-b border-slate-200 p-2 md:p-4 flex flex-col md:flex-row justify-between items-center shrink-0 shadow-sm z-30 gap-2">
+        <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start">
+           <div className="flex items-center gap-2">
+             <Layout className="text-rose-600" size={24} />
+             <div>
+               <h2 className="font-bold text-slate-800 text-sm md:text-base">Editor do Site</h2>
+               <p className="text-xs text-slate-500 hidden md:block">Personalize seu site de casamento</p>
+             </div>
            </div>
+           
+           {/* Mobile Controls moved here for space */}
+           <div className="flex md:hidden bg-slate-100 rounded-lg p-1">
+               <button 
+                 onClick={() => setViewMode('desktop')}
+                 className={`p-1.5 rounded transition-colors ${viewMode === 'desktop' ? 'bg-white shadow-sm text-rose-600' : 'text-slate-500'}`}
+               >
+                   <Monitor size={16} />
+               </button>
+               <button 
+                 onClick={() => setViewMode('mobile')}
+                 className={`p-1.5 rounded transition-colors ${viewMode === 'mobile' ? 'bg-white shadow-sm text-rose-600' : 'text-slate-500'}`}
+               >
+                   <Smartphone size={16} />
+               </button>
+          </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <div className="flex bg-slate-100 rounded-lg p-1 mr-4">
+        <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+          <div className="hidden md:flex bg-slate-100 rounded-lg p-1 mr-4">
                <button 
                  onClick={() => setViewMode('desktop')}
                  className={`p-2 rounded transition-colors ${viewMode === 'desktop' ? 'bg-white shadow-sm text-rose-600' : 'text-slate-500 hover:text-slate-700'}`}
@@ -502,7 +520,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ data, giftItems,
 
           <button
              onClick={() => setIsPreview(!isPreview)}
-             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+             className={`flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-sm font-medium transition-colors ${
                isPreview 
                ? 'bg-rose-100 text-rose-700 border border-rose-200' 
                : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-50'
@@ -512,18 +530,18 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ data, giftItems,
              {isPreview ? 'Editar' : 'Visualizar'}
           </button>
           
-          <button className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 shadow-sm">
+          <button className="bg-slate-800 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-sm font-medium hover:bg-slate-700 shadow-sm">
              Publicar
           </button>
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
         
-        {/* Left Sidebar */}
+        {/* Sidebar Controls - Stack on mobile */}
         {!isPreview && (
-          <div className="w-80 bg-white border-r border-slate-200 flex flex-col shrink-0 z-20">
-             <div className="flex border-b border-slate-200">
+          <div className="w-full lg:w-80 bg-white border-r border-slate-200 flex flex-col shrink-0 z-20 h-auto lg:h-full max-h-[40vh] lg:max-h-full border-b lg:border-b-0">
+             <div className="flex border-b border-slate-200 sticky top-0 bg-white z-10">
                  <button 
                     onClick={() => setActiveSidebarTab('components')}
                     className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 ${activeSidebarTab === 'components' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-slate-500 hover:text-slate-700'}`}
@@ -542,7 +560,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ data, giftItems,
                  {activeSidebarTab === 'components' ? (
                      <>
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Básicos</h3>
-                        <div className="space-y-3 mb-6">
+                        <div className="space-y-3 mb-6 grid grid-cols-2 lg:grid-cols-1 gap-2">
                             {[
                                 { id: 'hero', icon: ImageIcon, label: 'Capa / Hero' },
                                 { id: 'text', icon: Type, label: 'Texto Simples' },
@@ -559,7 +577,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ data, giftItems,
                         </div>
 
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Interativos</h3>
-                        <div className="space-y-3">
+                        <div className="space-y-3 grid grid-cols-2 lg:grid-cols-1 gap-2">
                             {[
                                 { id: 'rsvp', icon: Mail, label: 'RSVP / Presença' },
                                 { id: 'gallery', icon: Grid, label: 'Galeria de Fotos' },
@@ -620,10 +638,10 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ data, giftItems,
         )}
 
         {/* Main Canvas Area */}
-        <div className={`flex-1 overflow-y-auto bg-slate-200/50 flex items-start justify-center p-8 transition-all`}>
+        <div className={`flex-1 overflow-y-auto bg-slate-200/50 flex items-start justify-center p-4 md:p-8 transition-all h-auto min-h-screen lg:h-full`}>
           <div 
             className={`bg-white transition-all duration-300 ease-in-out shadow-2xl relative ${
-                viewMode === 'mobile' ? 'w-[375px] min-h-[667px] rounded-3xl border-[8px] border-slate-800' : 'w-full max-w-5xl min-h-[800px] rounded-sm'
+                viewMode === 'mobile' ? 'w-[320px] sm:w-[375px] min-h-[667px] rounded-3xl border-[8px] border-slate-800' : 'w-full max-w-5xl min-h-[800px] rounded-sm'
             }`}
           >
              {/* Mobile Camera Notch Simulation */}
@@ -635,7 +653,7 @@ export const WebsiteBuilder: React.FC<WebsiteBuilderProps> = ({ data, giftItems,
                <div className="h-96 flex flex-col items-center justify-center text-slate-400 p-8 text-center">
                   <Layout size={48} className="mb-4 opacity-30" />
                   <p className="font-medium">Seu site está vazio</p>
-                  <p className="text-sm">Adicione seções usando o menu lateral para começar.</p>
+                  <p className="text-sm">Adicione seções usando o menu para começar.</p>
                </div>
              ) : (
                <div className={`flex flex-col min-h-full ${viewMode === 'mobile' ? 'rounded-2xl overflow-hidden' : ''}`}>

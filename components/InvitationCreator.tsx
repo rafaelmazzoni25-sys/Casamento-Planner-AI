@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { InvitationData, InvitationTheme } from '../types';
-import { Download, Palette, Type, MapPin, Calendar, Heart, Image as ImageIcon } from 'lucide-react';
+import { Download, Palette, Type, MapPin, Calendar, Heart, Image as ImageIcon, ZoomIn, ZoomOut } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
 interface InvitationCreatorProps {
@@ -11,6 +11,7 @@ interface InvitationCreatorProps {
 export const InvitationCreator: React.FC<InvitationCreatorProps> = ({ data, onUpdate }) => {
   const previewRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [zoom, setZoom] = useState(1);
 
   const handleChange = (field: keyof InvitationData, value: string) => {
     onUpdate({ ...data, [field]: value });
@@ -90,9 +91,9 @@ export const InvitationCreator: React.FC<InvitationCreatorProps> = ({ data, onUp
   const styles = getThemeClasses(data.theme);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 h-full">
+    <div className="flex flex-col lg:flex-row gap-8 h-full min-h-[calc(100vh-140px)]">
       {/* Sidebar Controls */}
-      <div className="w-full lg:w-96 flex flex-col gap-6 overflow-y-auto pr-2 pb-10">
+      <div className="w-full lg:w-96 flex flex-col gap-6 overflow-y-auto pr-2 pb-10 order-2 lg:order-1">
         
         {/* Theme Selector */}
         <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
@@ -213,54 +214,80 @@ export const InvitationCreator: React.FC<InvitationCreatorProps> = ({ data, onUp
       </div>
 
       {/* Live Preview Area */}
-      <div className="flex-1 bg-slate-200 rounded-xl border border-slate-300 flex items-center justify-center p-8 overflow-hidden relative shadow-inner">
-         <div className="absolute top-4 left-4 text-xs font-bold text-slate-500 bg-white/50 px-2 py-1 rounded backdrop-blur-sm">
-           Visualização em Tempo Real
+      <div className="flex-1 bg-slate-200 rounded-xl border border-slate-300 flex items-center justify-center p-4 lg:p-8 overflow-hidden relative shadow-inner order-1 lg:order-2 min-h-[400px]">
+         <div className="absolute top-4 left-4 z-20 flex gap-2">
+            <span className="text-xs font-bold text-slate-500 bg-white/50 px-2 py-1 rounded backdrop-blur-sm">
+             Preview
+            </span>
+         </div>
+         
+         <div className="absolute top-4 right-4 z-20 flex gap-2">
+            <button onClick={() => setZoom(Math.max(0.5, zoom - 0.1))} className="bg-white p-2 rounded-full shadow-sm text-slate-600 hover:text-rose-500">
+               <ZoomOut size={16} />
+            </button>
+            <button onClick={() => setZoom(Math.min(1.5, zoom + 0.1))} className="bg-white p-2 rounded-full shadow-sm text-slate-600 hover:text-rose-500">
+               <ZoomIn size={16} />
+            </button>
          </div>
 
-         {/* The Invitation Card */}
-         <div 
-           ref={previewRef}
-           id="invitation-preview"
-           className={`relative w-[500px] min-h-[700px] shadow-2xl transition-all duration-500 flex flex-col ${styles.container}`}
-         >
-            {/* Inner Content Wrapper for padding/border */}
-            <div className={`flex-1 m-4 p-8 flex flex-col items-center justify-center text-center ${styles.border}`}>
-              
-              <div className={`mb-8 text-sm uppercase tracking-widest ${styles.accent}`}>
-                Convidamos você para celebrar o casamento de
-              </div>
-              
-              <div className="space-y-4 mb-8">
-                <div className={styles.names}>{data.brideName}</div>
-                <div className={`text-2xl ${styles.accent}`}>&</div>
-                <div className={styles.names}>{data.groomName}</div>
-              </div>
+         {/* Scale wrapper for mobile responsiveness */}
+         <div className="w-full h-full flex items-center justify-center overflow-auto lg:overflow-visible">
+            <div 
+               className="origin-center transition-transform duration-200"
+               style={{ 
+                  transform: `scale(${zoom})`,
+                  // Mobile responsive scaling: scales down on small screens via CSS container queries logic mostly handled by parent flex/overflow, 
+                  // but we enforce a scale down for very small screens via media query logic in className if needed, or just let scroll.
+                  // For a better mobile experience, we can use a max-width wrapper
+               }}
+            >
+                <div className="scale-[0.6] sm:scale-[0.8] md:scale-100 lg:scale-100 origin-center transition-transform">
+                    {/* The Invitation Card */}
+                    <div 
+                    ref={previewRef}
+                    id="invitation-preview"
+                    className={`relative w-[500px] min-h-[700px] shadow-2xl transition-all duration-500 flex flex-col ${styles.container}`}
+                    >
+                        {/* Inner Content Wrapper for padding/border */}
+                        <div className={`flex-1 m-4 p-8 flex flex-col items-center justify-center text-center ${styles.border}`}>
+                        
+                        <div className={`mb-8 text-sm uppercase tracking-widest ${styles.accent}`}>
+                            Convidamos você para celebrar o casamento de
+                        </div>
+                        
+                        <div className="space-y-4 mb-8">
+                            <div className={styles.names}>{data.brideName}</div>
+                            <div className={`text-2xl ${styles.accent}`}>&</div>
+                            <div className={styles.names}>{data.groomName}</div>
+                        </div>
 
-              <div className={styles.date}>
-                {data.date} • {data.time}
-              </div>
+                        <div className={styles.date}>
+                            {data.date} • {data.time}
+                        </div>
 
-              <div className={`w-16 h-[1px] my-8 ${data.theme === 'modern' ? 'bg-slate-700' : 'bg-slate-300'}`}></div>
+                        <div className={`w-16 h-[1px] my-8 ${data.theme === 'modern' ? 'bg-slate-700' : 'bg-slate-300'}`}></div>
 
-              <div className="mb-6 space-y-1">
-                <div className={`text-lg font-bold uppercase tracking-wide ${data.theme === 'modern' ? 'text-white' : 'text-slate-800'}`}>
-                  {data.venue}
+                        <div className="mb-6 space-y-1">
+                            <div className={`text-lg font-bold uppercase tracking-wide ${data.theme === 'modern' ? 'text-white' : 'text-slate-800'}`}>
+                            {data.venue}
+                            </div>
+                            <div className={`text-sm ${styles.body}`}>
+                            {data.address}
+                            </div>
+                        </div>
+
+                        <div className={`mt-auto max-w-xs text-sm ${styles.body}`}>
+                            "{data.message}"
+                        </div>
+
+                        {data.theme === 'romantic' && (
+                            <div className="mt-8 text-rose-300 opacity-50">
+                            <Heart size={24} fill="currentColor" />
+                            </div>
+                        )}
+                        </div>
+                    </div>
                 </div>
-                <div className={`text-sm ${styles.body}`}>
-                  {data.address}
-                </div>
-              </div>
-
-              <div className={`mt-auto max-w-xs text-sm ${styles.body}`}>
-                "{data.message}"
-              </div>
-
-              {data.theme === 'romantic' && (
-                <div className="mt-8 text-rose-300 opacity-50">
-                   <Heart size={24} fill="currentColor" />
-                </div>
-              )}
             </div>
          </div>
       </div>

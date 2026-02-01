@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Guest, Table, GuestSide, TableShape } from '../types';
-import { Plus, Trash2, Users, GripVertical, Armchair, Circle, Square, RectangleHorizontal } from 'lucide-react';
+import { Plus, Trash2, Users, GripVertical, Armchair, Circle, Square, RectangleHorizontal, Check, Hand } from 'lucide-react';
 
 interface SeatingChartProps {
   guests: Guest[];
@@ -23,6 +23,9 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
   const [newTableCapacity, setNewTableCapacity] = useState('8');
   const [newTableShape, setNewTableShape] = useState<TableShape>(TableShape.ROUND);
   const [draggedGuestId, setDraggedGuestId] = useState<string | null>(null);
+  
+  // Selection state for mobile click-to-assign
+  const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
 
   const handleAddTable = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +46,8 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
     setDraggedGuestId(guestId);
     e.dataTransfer.setData('guestId', guestId);
     e.dataTransfer.effectAllowed = 'move';
+    // Clear selection if we start dragging
+    setSelectedGuestId(null);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -57,6 +62,22 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
       onAssignGuest(guestId, tableId, seatIndex);
     }
     setDraggedGuestId(null);
+  };
+
+  // Click handler for Mobile (and Desktop alternative)
+  const handleSeatClick = (tableId: string, seatIndex: number) => {
+      if (selectedGuestId) {
+          onAssignGuest(selectedGuestId, tableId, seatIndex);
+          setSelectedGuestId(null); // Clear selection after assigning
+      }
+  };
+
+  const handleGuestClick = (guestId: string) => {
+      if (selectedGuestId === guestId) {
+          setSelectedGuestId(null);
+      } else {
+          setSelectedGuestId(guestId);
+      }
   };
 
   // Filter unseated guests
@@ -108,15 +129,15 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
 
   const getTableDimensions = (shape: TableShape) => {
       switch (shape) {
-          case TableShape.ROUND: return 'w-32 h-32 rounded-full';
-          case TableShape.SQUARE: return 'w-32 h-32 rounded-xl';
-          case TableShape.RECTANGLE: return 'w-48 h-24 rounded-lg';
-          default: return 'w-32 h-32 rounded-full';
+          case TableShape.ROUND: return 'w-24 h-24 sm:w-32 sm:h-32 rounded-full';
+          case TableShape.SQUARE: return 'w-24 h-24 sm:w-32 sm:h-32 rounded-xl';
+          case TableShape.RECTANGLE: return 'w-36 h-20 sm:w-48 sm:h-24 rounded-lg';
+          default: return 'w-24 h-24 sm:w-32 sm:h-32 rounded-full';
       }
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-200px)] min-h-[600px]">
+    <div className="flex flex-col lg:flex-row gap-6 h-auto min-h-[600px] lg:h-[calc(100vh-200px)]">
       
       {/* Sidebar: Unseated Guests & Add Table */}
       <div className="w-full lg:w-80 flex flex-col gap-4">
@@ -192,13 +213,16 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
         </div>
 
         {/* Unseated List */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden h-72 lg:h-auto">
           <div className="p-3 bg-slate-50 border-b border-slate-200">
             <h3 className="font-bold text-slate-700 flex justify-between items-center text-sm">
               <span>Sem Assento</span>
               <span className="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-xs">{unseatedGuests.length}</span>
             </h3>
-            <p className="text-xs text-slate-400 mt-1">Arraste para as mesas ao lado</p>
+            <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                <Hand size={12} />
+                Toque para selecionar
+            </p>
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-2">
             {unseatedGuests.map(guest => (
@@ -206,12 +230,16 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
                 key={guest.id}
                 draggable
                 onDragStart={(e) => handleDragStart(e, guest.id)}
-                className={`p-3 rounded-lg border border-slate-200 bg-white shadow-sm cursor-grab active:cursor-grabbing flex items-center gap-2 hover:border-rose-300 transition-colors ${
-                  guest.side === GuestSide.BRIDE ? 'border-l-4 border-l-rose-400' : 'border-l-4 border-l-blue-400'
+                onClick={() => handleGuestClick(guest.id)}
+                className={`p-3 rounded-lg border shadow-sm cursor-pointer active:cursor-grabbing flex items-center gap-2 transition-all ${
+                  selectedGuestId === guest.id 
+                    ? 'border-rose-500 bg-rose-50 ring-1 ring-rose-500' 
+                    : `bg-white border-slate-200 hover:border-rose-300 ${guest.side === GuestSide.BRIDE ? 'border-l-4 border-l-rose-400' : 'border-l-4 border-l-blue-400'}`
                 }`}
               >
                 <GripVertical size={16} className="text-slate-300" />
                 <span className="text-sm font-medium text-slate-700 truncate">{guest.name}</span>
+                {selectedGuestId === guest.id && <Check size={16} className="ml-auto text-rose-500" />}
               </div>
             ))}
             {unseatedGuests.length === 0 && (
@@ -224,7 +252,14 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
       </div>
 
       {/* Main Area: Tables Grid */}
-      <div className="flex-1 bg-slate-100 rounded-xl border border-slate-200 overflow-y-auto p-8">
+      <div className="flex-1 bg-slate-100 rounded-xl border border-slate-200 overflow-y-auto p-4 sm:p-8 min-h-[500px] relative">
+        {selectedGuestId && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-rose-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg z-30 animate-pulse flex items-center gap-2 pointer-events-none">
+                <Hand size={16} />
+                Toque em uma cadeira vazia
+            </div>
+        )}
+
         {tables.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-slate-400">
             <Armchair size={48} className="mb-4 opacity-50" />
@@ -232,7 +267,7 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
             <p className="text-sm">Use o painel lateral para adicionar mesas.</p>
           </div>
         ) : (
-          <div className="flex flex-wrap content-start items-start justify-center gap-20 pb-20">
+          <div className="flex flex-wrap content-start items-start justify-center gap-16 md:gap-20 pb-20 pt-8">
             {tables.map(table => {
               // Find guests sitting at this table
               const tableGuests = guests.filter(g => g.assignedTableId === table.id);
@@ -241,7 +276,7 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
                 <div key={table.id} className="relative w-64 h-64 flex items-center justify-center">
                   {/* The Table Shape */}
                   <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white border-4 border-rose-100 shadow-md flex flex-col items-center justify-center z-10 transition-all ${getTableDimensions(table.shape)}`}>
-                    <span className="font-bold text-slate-700 text-center px-2 text-sm leading-tight">{table.name}</span>
+                    <span className="font-bold text-slate-700 text-center px-2 text-sm leading-tight truncate w-full">{table.name}</span>
                     <span className="text-xs text-slate-400 mt-1">{tableGuests.length}/{table.capacity}</span>
                     <button 
                       onClick={() => onRemoveTable(table.id)}
@@ -257,15 +292,19 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
                     const assignedGuest = tableGuests.find(g => g.assignedSeatIndex === index);
                     const { x, y } = getSeatPosition(index, table.capacity, table.shape); 
 
+                    // Scale down seats slightly on small screens
+                    const seatSize = "w-10 h-10 sm:w-12 sm:h-12"; 
+
                     return (
                       <div
                         key={index}
                         onDragOver={handleDragOver}
                         onDrop={(e) => handleDrop(e, table.id, index)}
-                        className={`absolute w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-sm transform -translate-x-1/2 -translate-y-1/2 ${
+                        onClick={() => handleSeatClick(table.id, index)}
+                        className={`absolute ${seatSize} rounded-full flex items-center justify-center transition-all shadow-sm transform -translate-x-1/2 -translate-y-1/2 ${
                           assignedGuest 
                             ? (assignedGuest.side === GuestSide.BRIDE ? 'bg-rose-100 border-2 border-rose-300' : 'bg-blue-100 border-2 border-blue-300')
-                            : 'bg-white border border-slate-300 border-dashed hover:border-slate-400'
+                            : `bg-white border border-slate-300 border-dashed ${selectedGuestId ? 'hover:border-rose-500 hover:bg-rose-50 cursor-pointer ring-2 ring-offset-1 ring-transparent hover:ring-rose-200' : ''}`
                         }`}
                         style={{
                           left: `calc(50% + ${x}px)`,
@@ -273,8 +312,8 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
                         }}
                       >
                          {assignedGuest ? (
-                           <div className="group relative w-full h-full flex items-center justify-center cursor-pointer" onClick={() => onUnassignGuest(assignedGuest.id)}>
-                             <span className="text-xs font-bold text-slate-700 truncate max-w-[40px] px-0.5 text-center select-none" title={assignedGuest.name}>
+                           <div className="group relative w-full h-full flex items-center justify-center cursor-pointer" onClick={(e) => { e.stopPropagation(); onUnassignGuest(assignedGuest.id); }}>
+                             <span className="text-[10px] font-bold text-slate-700 truncate max-w-[32px] sm:max-w-[40px] px-0.5 text-center select-none" title={assignedGuest.name}>
                                {assignedGuest.name.split(' ')[0].substring(0, 4)}
                              </span>
                              {/* Hover X to remove */}

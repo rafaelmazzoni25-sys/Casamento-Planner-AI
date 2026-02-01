@@ -105,7 +105,8 @@ export const GuestManager: React.FC<GuestManagerProps> = ({ guests, onAddGuest, 
             className="bg-rose-600 text-white px-6 py-2 rounded-lg hover:bg-rose-700 transition-colors font-medium flex items-center justify-center gap-2"
           >
             <UserPlus size={18} />
-            Adicionar
+            <span className="md:hidden">Adicionar na Lista</span>
+            <span className="hidden md:inline">Adicionar</span>
           </button>
         </form>
       </div>

@@ -61,8 +61,8 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ expenses, savings }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-slate-200 h-[600px] flex flex-col">
-      <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-rose-50 rounded-t-xl">
+    <div className="bg-white rounded-xl shadow-lg border border-slate-200 h-full flex flex-col">
+      <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-rose-50 rounded-t-xl shrink-0">
         <Sparkles className="text-rose-500" size={20} />
         <h3 className="font-semibold text-rose-800">Consultora IA</h3>
       </div>
@@ -74,7 +74,7 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ expenses, savings }) => {
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[80%] rounded-2xl p-3 px-4 ${
+              className={`max-w-[85%] sm:max-w-[80%] rounded-2xl p-3 px-4 ${
                 msg.role === 'user'
                   ? 'bg-rose-600 text-white rounded-br-none'
                   : 'bg-slate-100 text-slate-800 rounded-bl-none'
@@ -95,7 +95,7 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ expenses, savings }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t border-slate-100">
+      <div className="p-4 border-t border-slate-100 shrink-0">
         <div className="flex gap-2">
           <input
             type="text"
@@ -103,13 +103,13 @@ export const AIAdvisor: React.FC<AIAdvisorProps> = ({ expenses, savings }) => {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Pergunte sobre preços, dicas ou análise..."
-            className="flex-1 p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-400 focus:outline-none"
+            className="flex-1 p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-400 focus:outline-none text-sm"
             disabled={isLoading}
           />
           <button
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="bg-rose-600 text-white p-2.5 rounded-lg hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="bg-rose-600 text-white p-3 rounded-lg hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Send size={20} />
           </button>

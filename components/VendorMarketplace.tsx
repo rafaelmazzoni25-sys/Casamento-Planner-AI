@@ -29,28 +29,28 @@ export const VendorMarketplace: React.FC<VendorMarketplaceProps> = ({ onContactV
   return (
     <div className="space-y-6">
       {/* Hero / Search Section */}
-      <div className="bg-gradient-to-r from-rose-600 to-rose-800 rounded-2xl p-8 text-white shadow-xl text-center">
-        <h2 className="text-3xl font-bold mb-2">Encontre os Melhores Profissionais</h2>
-        <p className="text-rose-100 mb-6 max-w-2xl mx-auto">
+      <div className="bg-gradient-to-r from-rose-600 to-rose-800 rounded-2xl p-6 md:p-8 text-white shadow-xl text-center">
+        <h2 className="text-2xl md:text-3xl font-bold mb-2">Encontre os Melhores Profissionais</h2>
+        <p className="text-rose-100 mb-6 max-w-2xl mx-auto text-sm md:text-base">
           Conectamos você a fornecedores verificados. Peça orçamentos sem compromisso e garanta a segurança do seu evento.
         </p>
         
         <div className="bg-white p-2 rounded-xl shadow-lg max-w-3xl mx-auto flex flex-col md:flex-row gap-2">
-            <div className="flex-1 flex items-center px-4 border-r border-slate-200">
-                <Search className="text-slate-400 mr-2" />
+            <div className="flex-1 flex items-center px-4 border-b md:border-b-0 md:border-r border-slate-200 py-2 md:py-0">
+                <Search className="text-slate-400 mr-2 shrink-0" />
                 <input 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Buscar por nome ou cidade..."
-                  className="w-full py-2 outline-none text-slate-700"
+                  className="w-full py-2 outline-none text-slate-700 text-sm"
                 />
             </div>
-            <div className="flex-1 flex items-center px-4">
-                <Filter className="text-slate-400 mr-2" />
+            <div className="flex-1 flex items-center px-4 py-2 md:py-0">
+                <Filter className="text-slate-400 mr-2 shrink-0" />
                 <select 
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full py-2 outline-none text-slate-700 bg-transparent"
+                  className="w-full py-2 outline-none text-slate-700 bg-transparent text-sm"
                 >
                     <option value="all">Todas as Categorias</option>
                     {Object.values(ExpenseCategory).map(cat => (
@@ -58,19 +58,19 @@ export const VendorMarketplace: React.FC<VendorMarketplaceProps> = ({ onContactV
                     ))}
                 </select>
             </div>
-            <button className="bg-slate-800 text-white px-8 py-2 rounded-lg font-bold hover:bg-slate-700 transition-colors">
+            <button className="bg-slate-800 text-white px-6 py-3 md:py-2 rounded-lg font-bold hover:bg-slate-700 transition-colors w-full md:w-auto">
                 Buscar
             </button>
         </div>
       </div>
 
       {/* Featured Badge Explanation (B2B Value Prop) */}
-      <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+      <div className="flex flex-col md:flex-row justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200 gap-3 text-center md:text-left">
           <div className="flex items-center gap-2 text-sm text-slate-600">
-              <ShieldCheck className="text-emerald-500" size={18} />
+              <ShieldCheck className="text-emerald-500 shrink-0" size={18} />
               <span>Profissionais com selo <strong>Verificado</strong> passaram por nossa curadoria de qualidade.</span>
           </div>
-          <button className="text-rose-600 text-sm font-bold hover:underline">
+          <button className="text-rose-600 text-sm font-bold hover:underline whitespace-nowrap">
               É fornecedor? Cadastre sua empresa
           </button>
       </div>

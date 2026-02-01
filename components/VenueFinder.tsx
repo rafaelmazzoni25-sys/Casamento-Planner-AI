@@ -32,27 +32,27 @@ export const VenueFinder: React.FC<VenueFinderProps> = ({ onAddVenueToBudget }) 
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-8 text-white shadow-xl">
+      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 md:p-8 text-white shadow-xl">
         <h2 className="text-3xl font-bold mb-4 flex items-center gap-2">
           <MapPin className="text-emerald-200" />
           Localizador de Espaços
         </h2>
-        <p className="text-emerald-100 max-w-2xl mb-6">
+        <p className="text-emerald-100 max-w-2xl mb-6 text-sm md:text-base">
           Encontre igrejas, salões de festa, fazendas e praias reais para o seu casamento.
           Nossa IA busca diretamente no Google Maps as melhores opções na sua região.
         </p>
 
-        <form onSubmit={handleSearch} className="flex gap-2 max-w-3xl bg-white p-2 rounded-xl shadow-lg">
+        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-2 max-w-3xl bg-white p-2 rounded-xl shadow-lg">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ex: Fazendas para casamento em Campinas com preço acessível..."
-            className="flex-1 p-3 outline-none text-slate-800 rounded-lg"
+            placeholder="Ex: Fazendas para casamento em Campinas..."
+            className="flex-1 p-3 outline-none text-slate-800 rounded-lg w-full"
           />
           <button 
             type="submit"
             disabled={isLoading}
-            className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 w-full md:w-auto"
           >
             {isLoading ? <Loader2 className="animate-spin" /> : <Search size={20} />}
             Buscar
@@ -110,9 +110,6 @@ export const VenueFinder: React.FC<VenueFinderProps> = ({ onAddVenueToBudget }) 
                     <Navigation size={16} />
                   </a>
                 </div>
-                
-                {/* Simulated Rating if generic web result doesn't have it explicitly structure, 
-                    but Grounding chunks often contain snippets. For now we keep it simple. */}
                 
                 <div className="mt-auto pt-4 flex gap-2">
                    <button 

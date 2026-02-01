@@ -3,7 +3,7 @@ import { VendorLead, VendorStats } from '../types';
 import { 
   LayoutDashboard, Settings, Crown, 
   MessageSquare, Calendar, Eye, MousePointerClick, 
-  TrendingUp, Search, Bell, ShieldCheck
+  TrendingUp, Search, Bell, ShieldCheck, Menu, X
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -38,30 +38,49 @@ const MOCK_CHART_DATA = [
 
 export const VendorPortal: React.FC<VendorPortalProps> = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'leads' | 'profile' | 'plans'>('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
   return (
-    <div className="flex h-full min-h-screen bg-slate-50 text-slate-800 font-sans">
+    <div className="flex h-full min-h-screen bg-slate-50 text-slate-800 font-sans relative overflow-hidden">
       
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0">
-        <div className="p-6 border-b border-slate-800">
-          <div className="flex items-center gap-2 text-white mb-1">
-            <Crown className="text-amber-400 fill-amber-400" size={24} />
-            <span className="font-bold text-lg tracking-tight">Portal Parceiro</span>
+      <div className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 transform transition-transform duration-300 lg:translate-x-0 lg:static
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+          <div>
+            <div className="flex items-center gap-2 text-white mb-1">
+              <Crown className="text-amber-400 fill-amber-400" size={24} />
+              <span className="font-bold text-lg tracking-tight">Portal Parceiro</span>
+            </div>
+            <p className="text-xs text-slate-500">Buffet Delícias Reais</p>
           </div>
-          <p className="text-xs text-slate-500">Buffet Delícias Reais</p>
+          <button onClick={toggleSidebar} className="lg:hidden text-slate-400">
+            <X size={24} />
+          </button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           <button 
-            onClick={() => setActiveTab('dashboard')}
+            onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'dashboard' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800/50'}`}
           >
             <LayoutDashboard size={20} />
             Dashboard
           </button>
           <button 
-            onClick={() => setActiveTab('leads')}
+            onClick={() => { setActiveTab('leads'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'leads' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800/50'}`}
           >
             <div className="relative">
@@ -71,14 +90,14 @@ export const VendorPortal: React.FC<VendorPortalProps> = () => {
             Leads / Orçamentos
           </button>
            <button 
-            onClick={() => setActiveTab('plans')}
+            onClick={() => { setActiveTab('plans'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'plans' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800/50'}`}
           >
             <TrendingUp size={20} />
             Impulsionar
           </button>
           <button 
-            onClick={() => setActiveTab('profile')}
+            onClick={() => { setActiveTab('profile'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'profile' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800/50'}`}
           >
             <Settings size={20} />
@@ -90,7 +109,7 @@ export const VendorPortal: React.FC<VendorPortalProps> = () => {
            <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg p-4 text-white">
              <h4 className="font-bold text-sm mb-1">Seja Pro</h4>
              <p className="text-xs text-amber-100 mb-2">Receba 3x mais leads aparecendo no topo.</p>
-             <button onClick={() => setActiveTab('plans')} className="w-full py-1.5 bg-white text-amber-600 text-xs font-bold rounded shadow-sm">
+             <button onClick={() => { setActiveTab('plans'); setIsSidebarOpen(false); }} className="w-full py-1.5 bg-white text-amber-600 text-xs font-bold rounded shadow-sm">
                Fazer Upgrade
              </button>
            </div>
@@ -98,16 +117,21 @@ export const VendorPortal: React.FC<VendorPortalProps> = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden w-full">
         
         {/* Header */}
-        <header className="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-8">
-           <h2 className="text-xl font-bold text-slate-800">
-             {activeTab === 'dashboard' && 'Visão Geral'}
-             {activeTab === 'leads' && 'Gestão de Orçamentos'}
-             {activeTab === 'plans' && 'Planos e Marketing'}
-             {activeTab === 'profile' && 'Editar Perfil'}
-           </h2>
+        <header className="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 shrink-0">
+           <div className="flex items-center gap-3">
+             <button onClick={toggleSidebar} className="lg:hidden text-slate-500 p-1">
+               <Menu size={24} />
+             </button>
+             <h2 className="text-lg lg:text-xl font-bold text-slate-800 truncate">
+               {activeTab === 'dashboard' && 'Visão Geral'}
+               {activeTab === 'leads' && 'Gestão de Orçamentos'}
+               {activeTab === 'plans' && 'Planos e Marketing'}
+               {activeTab === 'profile' && 'Editar Perfil'}
+             </h2>
+           </div>
            <div className="flex items-center gap-4">
               <button className="p-2 text-slate-400 hover:text-slate-600 relative">
                  <Bell size={20} />
@@ -120,20 +144,20 @@ export const VendorPortal: React.FC<VendorPortalProps> = () => {
         </header>
 
         {/* Content Scroll Area */}
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-8 w-full">
            
            {/* DASHBOARD TAB */}
            {activeTab === 'dashboard' && (
              <div className="space-y-6">
                 {/* KPI Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                       <div className="flex justify-between items-start mb-2">
                          <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Eye size={20} /></div>
                          <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">+12%</span>
                       </div>
                       <h3 className="text-2xl font-bold text-slate-800">{MOCK_STATS.profileViews}</h3>
-                      <p className="text-sm text-slate-500">Visualizações do Perfil</p>
+                      <p className="text-sm text-slate-500">Visualizações</p>
                    </div>
                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                       <div className="flex justify-between items-start mb-2">
@@ -141,7 +165,7 @@ export const VendorPortal: React.FC<VendorPortalProps> = () => {
                          <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">+5%</span>
                       </div>
                       <h3 className="text-2xl font-bold text-slate-800">{MOCK_STATS.clicksToContact}</h3>
-                      <p className="text-sm text-slate-500">Cliques no WhatsApp</p>
+                      <p className="text-sm text-slate-500">Cliques</p>
                    </div>
                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                       <div className="flex justify-between items-start mb-2">
@@ -149,7 +173,7 @@ export const VendorPortal: React.FC<VendorPortalProps> = () => {
                          <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">+2</span>
                       </div>
                       <h3 className="text-2xl font-bold text-slate-800">{MOCK_STATS.totalLeads}</h3>
-                      <p className="text-sm text-slate-500">Orçamentos Solicitados</p>
+                      <p className="text-sm text-slate-500">Leads</p>
                    </div>
                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                       <div className="flex justify-between items-start mb-2">
@@ -157,15 +181,15 @@ export const VendorPortal: React.FC<VendorPortalProps> = () => {
                          <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">Basic</span>
                       </div>
                       <h3 className="text-2xl font-bold text-slate-800">4.8</h3>
-                      <p className="text-sm text-slate-500">Nota Média (Avaliações)</p>
+                      <p className="text-sm text-slate-500">Avaliação</p>
                    </div>
                 </div>
 
                 {/* Charts */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                   <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                   <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full">
                       <h4 className="font-bold text-slate-800 mb-6">Performance da Semana</h4>
-                      <div className="h-64 w-full">
+                      <div className="h-64 w-full min-w-0">
                          <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={MOCK_CHART_DATA}>
                                <defs>
@@ -186,16 +210,16 @@ export const VendorPortal: React.FC<VendorPortalProps> = () => {
                    
                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
                       <h4 className="font-bold text-slate-800 mb-4">Últimos Leads</h4>
-                      <div className="flex-1 overflow-y-auto space-y-3">
+                      <div className="flex-1 overflow-y-auto space-y-3 min-h-[200px]">
                          {MOCK_LEADS.slice(0, 3).map(lead => (
                             <div key={lead.id} className="flex items-center gap-3 p-3 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-100 cursor-pointer">
-                               <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs">
+                               <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0">
                                   {lead.coupleName.substring(0,2)}
                                </div>
-                               <div className="flex-1">
+                               <div className="flex-1 min-w-0">
                                   <div className="flex justify-between">
-                                     <h5 className="font-bold text-slate-800 text-sm">{lead.coupleName}</h5>
-                                     <span className="text-[10px] text-slate-400">{lead.receivedAt}</span>
+                                     <h5 className="font-bold text-slate-800 text-sm truncate">{lead.coupleName}</h5>
+                                     <span className="text-[10px] text-slate-400 shrink-0">{lead.receivedAt}</span>
                                   </div>
                                   <p className="text-xs text-slate-500 line-clamp-1">{lead.message}</p>
                                </div>
@@ -213,55 +237,57 @@ export const VendorPortal: React.FC<VendorPortalProps> = () => {
            {/* LEADS TAB */}
            {activeTab === 'leads' && (
              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-                   <div className="relative w-64">
+                <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+                   <div className="relative w-full sm:w-64">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                       <input className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-rose-400" placeholder="Buscar noivo(a)..." />
                    </div>
-                   <div className="flex gap-2">
-                      <select className="text-sm border-slate-300 rounded-lg p-2 focus:outline-none">
+                   <div className="flex gap-2 w-full sm:w-auto">
+                      <select className="w-full sm:w-auto text-sm border-slate-300 rounded-lg p-2 focus:outline-none">
                          <option>Todos os Status</option>
                          <option>Novos</option>
                          <option>Lidos</option>
                       </select>
                    </div>
                 </div>
-                <table className="w-full text-left text-sm">
-                   <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
-                      <tr>
-                         <th className="p-4">Casal</th>
-                         <th className="p-4">Data Casamento</th>
-                         <th className="p-4">Orçamento Est.</th>
-                         <th className="p-4">Status</th>
-                         <th className="p-4 text-right">Ação</th>
-                      </tr>
-                   </thead>
-                   <tbody className="divide-y divide-slate-100">
-                      {MOCK_LEADS.map(lead => (
-                         <tr key={lead.id} className="hover:bg-slate-50">
-                            <td className="p-4 font-medium text-slate-800">{lead.coupleName}</td>
-                            <td className="p-4 text-slate-600 flex items-center gap-2">
-                               <Calendar size={14} /> {new Date(lead.weddingDate).toLocaleDateString()}
-                            </td>
-                            <td className="p-4 text-slate-600">R$ {lead.budget.toLocaleString()}</td>
-                            <td className="p-4">
-                               <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                                  lead.status === 'new' ? 'bg-blue-100 text-blue-700' :
-                                  lead.status === 'booked' ? 'bg-emerald-100 text-emerald-700' :
-                                  'bg-slate-100 text-slate-600'
-                               }`}>
-                                  {lead.status === 'new' ? 'Novo' : lead.status === 'booked' ? 'Fechado' : 'Contatado'}
-                               </span>
-                            </td>
-                            <td className="p-4 text-right">
-                               <button className="text-rose-600 font-bold text-xs border border-rose-200 px-3 py-1.5 rounded hover:bg-rose-50 transition-colors">
-                                  Responder
-                               </button>
-                            </td>
-                         </tr>
-                      ))}
-                   </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm min-w-[600px]">
+                    <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+                        <tr>
+                            <th className="p-4">Casal</th>
+                            <th className="p-4">Data Casamento</th>
+                            <th className="p-4">Orçamento Est.</th>
+                            <th className="p-4">Status</th>
+                            <th className="p-4 text-right">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                        {MOCK_LEADS.map(lead => (
+                            <tr key={lead.id} className="hover:bg-slate-50">
+                                <td className="p-4 font-medium text-slate-800">{lead.coupleName}</td>
+                                <td className="p-4 text-slate-600 flex items-center gap-2">
+                                <Calendar size={14} /> {new Date(lead.weddingDate).toLocaleDateString()}
+                                </td>
+                                <td className="p-4 text-slate-600">R$ {lead.budget.toLocaleString()}</td>
+                                <td className="p-4">
+                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                                    lead.status === 'new' ? 'bg-blue-100 text-blue-700' :
+                                    lead.status === 'booked' ? 'bg-emerald-100 text-emerald-700' :
+                                    'bg-slate-100 text-slate-600'
+                                }`}>
+                                    {lead.status === 'new' ? 'Novo' : lead.status === 'booked' ? 'Fechado' : 'Contatado'}
+                                </span>
+                                </td>
+                                <td className="p-4 text-right">
+                                <button className="text-rose-600 font-bold text-xs border border-rose-200 px-3 py-1.5 rounded hover:bg-rose-50 transition-colors whitespace-nowrap">
+                                    Responder
+                                </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                    </table>
+                </div>
              </div>
            )}
 
@@ -288,8 +314,8 @@ export const VendorPortal: React.FC<VendorPortalProps> = () => {
                     </div>
 
                     {/* Pro */}
-                    <div className="bg-white p-6 rounded-xl border-2 border-amber-400 shadow-xl relative transform scale-105">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full">MAIS POPULAR</div>
+                    <div className="bg-white p-6 rounded-xl border-2 border-amber-400 shadow-xl relative transform md:scale-105">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">MAIS POPULAR</div>
                         <h4 className="font-bold text-amber-600 flex items-center gap-2"><Crown size={18} /> Profissional</h4>
                         <div className="text-3xl font-bold text-slate-800 my-4">R$ 99<span className="text-sm font-normal text-slate-500">/mês</span></div>
                         <ul className="space-y-3 text-sm text-slate-700 mb-8">
