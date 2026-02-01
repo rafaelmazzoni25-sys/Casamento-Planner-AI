@@ -1,4 +1,6 @@
-import { GoogleGenAI } from "@google/genai";
+
+import { GoogleGenAI, Type } from "@google/genai";
+import { HoneymoonDestination } from '../types';
 
 const apiKey = process.env.API_KEY || '';
 
@@ -110,5 +112,60 @@ export const searchVenuesWithMaps = async (query: string): Promise<{ text: strin
   } catch (error) {
     console.error("Gemini Maps Error:", error);
     return { text: "Ocorreu um erro ao buscar locais.", chunks: [] };
+  }
+};
+
+export const suggestHoneymoonDestinations = async (
+  preferences: {
+    vibe: string,
+    month: string,
+    budget: string
+  }
+): Promise<HoneymoonDestination[]> => {
+  const client = getClient();
+  if (!client) {
+    throw new Error("API Key missing");
+  }
+
+  try {
+    const response = await client.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Sugira 3 destinos de lua de mel baseados nestas preferências:
+        Vibe: ${preferences.vibe}
+        Mês da viagem: ${preferences.month}
+        Orçamento aproximado: ${preferences.budget}
+        
+        Responda APENAS com um JSON válido seguindo o esquema.`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              id: { type: Type.STRING },
+              name: { type: Type.STRING },
+              country: { type: Type.STRING },
+              description: { type: Type.STRING },
+              estimatedCost: { type: Type.NUMBER, description: "Estimated cost in BRL" },
+              currency: { type: Type.STRING },
+              bestTime: { type: Type.STRING },
+              activities: { type: Type.ARRAY, items: { type: Type.STRING } },
+              pros: { type: Type.ARRAY, items: { type: Type.STRING } },
+              cons: { type: Type.ARRAY, items: { type: Type.STRING } },
+            },
+            required: ["id", "name", "country", "description", "estimatedCost", "activities", "pros", "cons"]
+          }
+        }
+      }
+    });
+
+    if (response.text) {
+      return JSON.parse(response.text);
+    }
+    return [];
+  } catch (error) {
+    console.error("Honeymoon AI Error:", error);
+    return [];
   }
 };

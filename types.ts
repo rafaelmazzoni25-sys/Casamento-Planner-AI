@@ -1,3 +1,4 @@
+
 export enum ExpenseCategory {
   VENUE = 'Local & Cerimônia',
   CATERING = 'Buffet & Bebidas',
@@ -7,7 +8,8 @@ export enum ExpenseCategory {
   MUSIC = 'Música & Iluminação',
   INVITES = 'Convites & Papelaria',
   GIFTS = 'Lembrancinhas',
-  OTHER = 'Outros'
+  OTHER = 'Outros',
+  HONEYMOON = 'Lua de Mel' // Added category
 }
 
 export enum ExpenseStatus {
@@ -187,4 +189,25 @@ export interface VenueSearchResult {
   rating?: string;
   user_ratings_total?: string;
   sourceUri?: string; // Google Maps Link
+}
+
+// Tipos para Lua de Mel
+export interface HoneymoonDestination {
+  id: string;
+  name: string;
+  country: string;
+  description: string;
+  estimatedCost: number;
+  currency: string;
+  bestTime: string;
+  activities: string[];
+  pros: string[];
+  cons: string[];
+  imageUrl?: string;
+}
+
+export interface HoneymoonPlan {
+  selectedDestination: HoneymoonDestination | null;
+  packingList: { item: string; packed: boolean }[];
+  notes: string;
 }

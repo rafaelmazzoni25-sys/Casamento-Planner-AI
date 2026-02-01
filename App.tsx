@@ -13,8 +13,9 @@ import { VendorPortal } from './components/VendorPortal';
 import { PremiumModal } from './components/PremiumModal';
 import { MoodBoard } from './components/MoodBoard';
 import { VenueFinder } from './components/VenueFinder';
-import { Expense, ExpenseCategory, ExpenseStatus, SavingsPlan, Guest, GuestSide, Table, InvitationData, WebsiteData, GiftItem, Task, Vendor, Inspiration } from './types';
-import { Heart, LayoutDashboard, List, Calendar, MessageSquareText, Download, Trash2, Edit2, Plus, Calculator, CheckCircle2, Check, DollarSign, Clock, Users, Armchair, Palette, Globe, Gift, ListTodo, Store, Crown, Briefcase, Sparkles, MapPin, Menu, X, ChevronRight } from 'lucide-react';
+import { HoneymoonPlanner } from './components/HoneymoonPlanner';
+import { Expense, ExpenseCategory, ExpenseStatus, SavingsPlan, Guest, GuestSide, Table, InvitationData, WebsiteData, GiftItem, Task, Vendor, Inspiration, HoneymoonPlan } from './types';
+import { Heart, LayoutDashboard, List, Calendar, MessageSquareText, Download, Trash2, Edit2, Plus, Calculator, CheckCircle2, Check, DollarSign, Clock, Users, Armchair, Palette, Globe, Gift, ListTodo, Store, Crown, Briefcase, Sparkles, MapPin, Menu, X, ChevronRight, Plane } from 'lucide-react';
 
 const STORAGE_KEY = 'wedding_planner_data';
 
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { id: 'dashboard', label: 'Visão Geral', icon: LayoutDashboard },
   { id: 'planning', label: 'Planos & Metas', icon: Calculator },
   { id: 'advisor', label: 'Consultora IA', icon: MessageSquareText },
+  { id: 'honeymoon', label: 'Lua de Mel', icon: Plane }, // New Item
   { id: 'tasks', label: 'Tarefas', icon: ListTodo },
   { id: 'expenses', label: 'Despesas', icon: List },
   { id: 'venues', label: 'Localizador', icon: MapPin },
@@ -51,6 +53,8 @@ const App: React.FC = () => {
   const [giftItems, setGiftItems] = useState<GiftItem[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [inspirations, setInspirations] = useState<Inspiration[]>([]);
+  const [honeymoonPlan, setHoneymoonPlan] = useState<HoneymoonPlan>({ selectedDestination: null, packingList: [], notes: '' });
+
   const [invitation, setInvitation] = useState<InvitationData>({
     brideName: 'Maria',
     groomName: 'João',
@@ -101,6 +105,7 @@ const App: React.FC = () => {
         setTables(parsed.tables || []);
         if (parsed.tasks) setTasks(parsed.tasks);
         if (parsed.inspirations) setInspirations(parsed.inspirations);
+        if (parsed.honeymoonPlan) setHoneymoonPlan(parsed.honeymoonPlan);
         if (parsed.invitation) {
           setInvitation(parsed.invitation);
         }
@@ -142,8 +147,8 @@ const App: React.FC = () => {
 
   // Save data on change
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ expenses, savingsPlan, guests, tables, invitation, websiteData, giftItems, tasks, inspirations, isPremium }));
-  }, [expenses, savingsPlan, guests, tables, invitation, websiteData, giftItems, tasks, inspirations, isPremium]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ expenses, savingsPlan, guests, tables, invitation, websiteData, giftItems, tasks, inspirations, honeymoonPlan, isPremium }));
+  }, [expenses, savingsPlan, guests, tables, invitation, websiteData, giftItems, tasks, inspirations, honeymoonPlan, isPremium]);
 
   // Handlers
   const handleSaveExpense = (expense: Expense) => {
@@ -154,6 +159,20 @@ const App: React.FC = () => {
     }
     setShowForm(false);
     setEditingExpense(null);
+  };
+
+  const handleQuickAddExpense = (name: string, cost: number) => {
+    const newExpense: Expense = {
+      id: crypto.randomUUID(),
+      name: name,
+      category: ExpenseCategory.HONEYMOON,
+      estimatedCost: cost,
+      paidAmount: 0,
+      depositRequired: 0,
+      status: ExpenseStatus.PENDING,
+      notes: 'Adicionado automaticamente via Planejador de Lua de Mel'
+    };
+    setExpenses(prev => [...prev, newExpense]);
   };
 
   const handleDeleteExpense = (id: string) => {
@@ -298,17 +317,7 @@ const App: React.FC = () => {
   
   // Venue Finder Handler
   const handleAddVenueToBudget = (name: string) => {
-    const newExpense: Expense = {
-      id: crypto.randomUUID(),
-      name: name,
-      category: ExpenseCategory.VENUE,
-      estimatedCost: 0, // User to fill
-      paidAmount: 0,
-      depositRequired: 0,
-      status: ExpenseStatus.PENDING,
-      notes: 'Adicionado via Localizador de Espaços'
-    };
-    setExpenses(prev => [...prev, newExpense]);
+    handleQuickAddExpense(name, 0); // Add with 0 and ask user to update
     alert(`${name} adicionado às despesas! Vá para a aba Despesas para definir o valor.`);
   };
   
@@ -329,6 +338,7 @@ const App: React.FC = () => {
       giftItems,
       savingsPlan,
       inspirations,
+      honeymoonPlan,
       isPremium,
       exportDate: new Date().toISOString()
     };
@@ -366,6 +376,9 @@ const App: React.FC = () => {
         }
         if (parsed.inspirations) {
             setInspirations(parsed.inspirations);
+        }
+        if (parsed.honeymoonPlan) {
+            setHoneymoonPlan(parsed.honeymoonPlan);
         }
         if (parsed.invitation) {
           setInvitation(parsed.invitation);
@@ -679,6 +692,15 @@ const App: React.FC = () => {
              onAdd={handleAddInspiration} 
              onRemove={handleRemoveInspiration} 
              isPremium={isPremium}
+           />
+        )}
+        
+        {/* TAB: HONEYMOON (New) */}
+        {activeTab === 'honeymoon' && (
+           <HoneymoonPlanner 
+             plan={honeymoonPlan}
+             onUpdatePlan={setHoneymoonPlan}
+             onAddExpense={handleQuickAddExpense}
            />
         )}
 
