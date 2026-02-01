@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { VendorLead, VendorStats } from '../types';
 import { 
-  LayoutDashboard, Users, BarChart3, Settings, Crown, 
-  MessageSquare, Calendar, ChevronRight, Eye, MousePointerClick, 
+  LayoutDashboard, Settings, Crown, 
+  MessageSquare, Calendar, Eye, MousePointerClick, 
   TrendingUp, Search, Bell, ShieldCheck
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface VendorPortalProps {
   // Em um app real, receberia os dados do fornecedor logado
@@ -38,8 +38,7 @@ const MOCK_CHART_DATA = [
 
 export const VendorPortal: React.FC<VendorPortalProps> = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'leads' | 'profile' | 'plans'>('dashboard');
-  const [plan, setPlan] = useState<'basic' | 'pro'>('basic');
-
+  
   return (
     <div className="flex h-full min-h-screen bg-slate-50 text-slate-800 font-sans">
       
@@ -166,7 +165,7 @@ export const VendorPortal: React.FC<VendorPortalProps> = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                       <h4 className="font-bold text-slate-800 mb-6">Performance da Semana</h4>
-                      <div className="h-64">
+                      <div className="h-64 w-full">
                          <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={MOCK_CHART_DATA}>
                                <defs>

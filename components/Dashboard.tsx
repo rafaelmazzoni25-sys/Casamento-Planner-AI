@@ -147,7 +147,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ expenses, savingsPlan, pla
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h4 className="text-lg font-semibold mb-4 text-slate-700">Gastos por Categoria</h4>
-          <div className="h-64">
+          <div className="h-64 w-full">
             {categoryData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -176,7 +176,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ expenses, savingsPlan, pla
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h4 className="text-lg font-semibold mb-4 text-slate-700">Progresso de Pagamentos</h4>
-           <div className="h-64">
+           <div className="h-64 w-full">
              <ResponsiveContainer width="100%" height="100%">
                <BarChart data={statusData} layout="vertical">
                  <CartesianGrid strokeDasharray="3 3" />

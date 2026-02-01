@@ -179,3 +179,12 @@ export interface Inspiration {
   category: string; // 'Bolo', 'Vestido', etc.
   createdAt: string;
 }
+
+// Novo tipo para Busca de Locais (Maps Grounding)
+export interface VenueSearchResult {
+  name: string;
+  address?: string;
+  rating?: string;
+  user_ratings_total?: string;
+  sourceUri?: string; // Google Maps Link
+}

@@ -84,3 +84,31 @@ export const generateWeddingImage = async (prompt: string): Promise<string | nul
     throw error;
   }
 };
+
+export const searchVenuesWithMaps = async (query: string): Promise<{ text: string, chunks: any[] }> => {
+  const client = getClient();
+  if (!client) {
+    return { text: "Erro de configuração de API.", chunks: [] };
+  }
+
+  try {
+    // Uses Google Maps Grounding
+    const response = await client.models.generateContent({
+      model: "gemini-2.5-flash-preview", // Maps grounding is supported on 2.5 series
+      contents: `Encontre locais para casamento baseados nesta busca: "${query}". 
+      Liste as opções com nome, endereço e avaliação se disponível. 
+      Foque em encontrar locais reais usando o Google Maps.`,
+      config: {
+        tools: [{ googleMaps: {} }],
+      },
+    });
+
+    const text = response.text || "Nenhum local encontrado.";
+    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+
+    return { text, chunks };
+  } catch (error) {
+    console.error("Gemini Maps Error:", error);
+    return { text: "Ocorreu um erro ao buscar locais.", chunks: [] };
+  }
+};

@@ -12,8 +12,9 @@ import { VendorMarketplace } from './components/VendorMarketplace';
 import { VendorPortal } from './components/VendorPortal';
 import { PremiumModal } from './components/PremiumModal';
 import { MoodBoard } from './components/MoodBoard';
+import { VenueFinder } from './components/VenueFinder';
 import { Expense, ExpenseCategory, ExpenseStatus, SavingsPlan, Guest, GuestSide, Table, TableShape, InvitationData, WebsiteData, GiftItem, Task, Vendor, Inspiration } from './types';
-import { Heart, LayoutDashboard, List, Calendar, MessageSquareText, Download, Trash2, Edit2, Plus, Calculator, CheckCircle2, Check, DollarSign, Clock, Users, Armchair, Palette, Globe, Gift, ListTodo, Store, Crown, Briefcase, Sparkles } from 'lucide-react';
+import { Heart, LayoutDashboard, List, Calendar, MessageSquareText, Download, Trash2, Edit2, Plus, Calculator, CheckCircle2, Check, DollarSign, Clock, Users, Armchair, Palette, Globe, Gift, ListTodo, Store, Crown, Briefcase, Sparkles, MapPin } from 'lucide-react';
 
 const STORAGE_KEY = 'wedding_planner_data';
 
@@ -22,7 +23,7 @@ const App: React.FC = () => {
   const [userType, setUserType] = useState<'couple' | 'vendor'>('couple');
 
   // State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'tasks' | 'guests' | 'seating' | 'invites' | 'website' | 'registry' | 'planning' | 'advisor' | 'vendors' | 'moodboard'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'tasks' | 'guests' | 'seating' | 'invites' | 'website' | 'registry' | 'planning' | 'advisor' | 'vendors' | 'moodboard' | 'venues'>('dashboard');
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [guests, setGuests] = useState<Guest[]>([]);
   const [tables, setTables] = useState<Table[]>([]);
@@ -272,6 +273,22 @@ const App: React.FC = () => {
         ? { ...g, assignedTableId: undefined, assignedSeatIndex: undefined }
         : g
     ));
+  };
+  
+  // Venue Finder Handler
+  const handleAddVenueToBudget = (name: string) => {
+    const newExpense: Expense = {
+      id: crypto.randomUUID(),
+      name: name,
+      category: ExpenseCategory.VENUE,
+      estimatedCost: 0, // User to fill
+      paidAmount: 0,
+      depositRequired: 0,
+      status: ExpenseStatus.PENDING,
+      notes: 'Adicionado via Localizador de Espaços'
+    };
+    setExpenses(prev => [...prev, newExpense]);
+    alert(`${name} adicionado às despesas! Vá para a aba Despesas para definir o valor.`);
   };
   
   // Vendor Handler (B2B Lead Generation Sim)
@@ -536,6 +553,17 @@ const App: React.FC = () => {
               Visão Geral
             </button>
             <button
+              onClick={() => setActiveTab('venues')}
+              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                activeTab === 'venues'
+                  ? 'border-rose-500 text-rose-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <MapPin size={18} />
+              Localizador
+            </button>
+            <button
               onClick={() => setActiveTab('moodboard')}
               className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
                 activeTab === 'moodboard'
@@ -672,6 +700,13 @@ const App: React.FC = () => {
             onExportBackup={handleExportBackup}
             onImportBackup={handleImportBackup}
           />
+        )}
+
+        {/* TAB: VENUES (New) */}
+        {activeTab === 'venues' && (
+           <VenueFinder 
+             onAddVenueToBudget={handleAddVenueToBudget}
+           />
         )}
 
         {/* TAB: MOODBOARD (New) */}
