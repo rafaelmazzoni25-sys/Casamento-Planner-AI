@@ -9,6 +9,12 @@
       tailwind.config = {
         theme: {
           extend: {
+            fontFamily: {
+              serif: ['Playfair Display', 'Merriweather', 'serif'],
+              sans: ['Inter', 'Roboto', 'sans-serif'],
+              mono: ['Courier Prime', 'monospace'],
+              cursive: ['Great Vibes', 'Dancing Script', 'cursive'],
+            },
             colors: {
               rose: {
                 50: '#fff1f2',
@@ -30,6 +36,7 @@
         }
       }
     </script>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&family=Courier+Prime&display=swap" rel="stylesheet">
     <style>
       body {
         font-family: 'Inter', sans-serif;
@@ -59,7 +66,8 @@
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
     "recharts": "https://esm.sh/recharts@^3.7.0",
     "@google/genai": "https://esm.sh/@google/genai@^1.39.0",
-    "lucide-react": "https://esm.sh/lucide-react@^0.563.0"
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1"
   }
 }
 </script>

@@ -2,15 +2,48 @@ import React, { useState, useEffect } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { ExpenseForm } from './components/ExpenseForm';
 import { AIAdvisor } from './components/AIAdvisor';
-import { Expense, ExpenseCategory, ExpenseStatus, SavingsPlan } from './types';
-import { Heart, LayoutDashboard, List, Calendar, MessageSquareText, Download, Trash2, Edit2, Plus, Calculator, CheckCircle2, Check, DollarSign, Clock } from 'lucide-react';
+import { GuestManager } from './components/GuestManager';
+import { SeatingChart } from './components/SeatingChart';
+import { InvitationCreator } from './components/InvitationCreator';
+import { WebsiteBuilder } from './components/WebsiteBuilder';
+import { GiftRegistryManager } from './components/GiftRegistryManager';
+import { Expense, ExpenseCategory, ExpenseStatus, SavingsPlan, Guest, GuestSide, Table, TableShape, InvitationData, WebsiteData, GiftItem } from './types';
+import { Heart, LayoutDashboard, List, Calendar, MessageSquareText, Download, Trash2, Edit2, Plus, Calculator, CheckCircle2, Check, DollarSign, Clock, Users, Armchair, Palette, Globe, Gift } from 'lucide-react';
 
 const STORAGE_KEY = 'wedding_planner_data';
 
 const App: React.FC = () => {
   // State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'planning' | 'advisor'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'guests' | 'seating' | 'invites' | 'website' | 'registry' | 'planning' | 'advisor'>('dashboard');
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [guests, setGuests] = useState<Guest[]>([]);
+  const [tables, setTables] = useState<Table[]>([]);
+  const [giftItems, setGiftItems] = useState<GiftItem[]>([]);
+  const [invitation, setInvitation] = useState<InvitationData>({
+    brideName: 'Maria',
+    groomName: 'João',
+    date: '20 de Outubro de 2025',
+    time: '16:00',
+    venue: 'Villa Casamento Real',
+    address: 'Rua das Flores, 123 - Campo Belo',
+    message: 'Com amor, convidamos você para o início do nosso "para sempre".',
+    theme: 'classic'
+  });
+  const [websiteData, setWebsiteData] = useState<WebsiteData>({
+    title: 'Nosso Casamento',
+    globalSettings: {
+      primaryColor: 'rose',
+      fontFamily: 'serif'
+    },
+    sections: [
+      {
+        id: 'default-hero',
+        type: 'hero',
+        content: { title: 'Maria & João', subtitle: 'Vamos dizer sim!', imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=2070', bgColor: 'bg-slate-900', alignment: 'center' }
+      }
+    ]
+  });
+  
   // Change default mode to 'calculate_amount' as requested
   const [savingsPlan, setSavingsPlan] = useState<SavingsPlan>({
     currentSavings: 0,
@@ -28,6 +61,21 @@ const App: React.FC = () => {
       try {
         const parsed = JSON.parse(savedData);
         setExpenses(parsed.expenses || []);
+        setGuests(parsed.guests || []);
+        setTables(parsed.tables || []);
+        if (parsed.invitation) {
+          setInvitation(parsed.invitation);
+        }
+        if (parsed.websiteData) {
+          setWebsiteData({
+              title: parsed.websiteData.title || 'Nosso Casamento',
+              globalSettings: parsed.websiteData.globalSettings || { primaryColor: 'rose', fontFamily: 'serif' },
+              sections: parsed.websiteData.sections || []
+          });
+        }
+        if (parsed.giftItems) {
+            setGiftItems(parsed.giftItems);
+        }
         // Preserve saved mode if exists, otherwise default to calculate_amount
         setSavingsPlan(parsed.savingsPlan || {
           currentSavings: 0,
@@ -45,13 +93,18 @@ const App: React.FC = () => {
         { id: '2', name: 'Cartório', category: ExpenseCategory.OTHER, estimatedCost: 600, paidAmount: 0, depositRequired: 0, dueDate: '2024-11-15', status: ExpenseStatus.PENDING, notes: 'Documentação civil' },
         { id: '3', name: 'Vestido da Noiva', category: ExpenseCategory.ATTIRE, estimatedCost: 3000, paidAmount: 0, depositRequired: 500, status: ExpenseStatus.PENDING, notes: '' },
       ]);
+      // Sample Guests
+      setGuests([
+        { id: '1', name: 'Mãe da Noiva', side: GuestSide.BRIDE, confirmed: true },
+        { id: '2', name: 'Pai do Noivo', side: GuestSide.GROOM, confirmed: true },
+      ]);
     }
   }, []);
 
   // Save data on change
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ expenses, savingsPlan }));
-  }, [expenses, savingsPlan]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ expenses, savingsPlan, guests, tables, invitation, websiteData, giftItems }));
+  }, [expenses, savingsPlan, guests, tables, invitation, websiteData, giftItems]);
 
   // Handlers
   const handleSaveExpense = (expense: Expense) => {
@@ -65,10 +118,8 @@ const App: React.FC = () => {
   };
 
   const handleDeleteExpense = (id: string) => {
-    // Removed confirmation dialog to ensure immediate action and avoid browser blocks
     setExpenses(prev => prev.filter(e => e.id !== id));
     
-    // If we are currently editing the item we just deleted, close the form
     if (editingExpense?.id === id) {
       setShowForm(false);
       setEditingExpense(null);
@@ -93,9 +144,83 @@ const App: React.FC = () => {
     }));
   };
 
+  // Gift Registry Handlers
+  const handleAddGiftItem = (item: GiftItem) => {
+      setGiftItems(prev => [...prev, item]);
+  };
+  const handleUpdateGiftItem = (item: GiftItem) => {
+      setGiftItems(prev => prev.map(i => i.id === item.id ? item : i));
+  };
+  const handleRemoveGiftItem = (id: string) => {
+      setGiftItems(prev => prev.filter(i => i.id !== id));
+  };
+
+  // Guest Handlers
+  const handleAddGuest = (guest: Guest) => {
+    setGuests(prev => [...prev, guest]);
+  };
+
+  const handleRemoveGuest = (id: string) => {
+    setGuests(prev => prev.filter(g => g.id !== id));
+  };
+
+  const handleToggleGuestConfirmation = (id: string) => {
+    setGuests(prev => prev.map(g => g.id === id ? { ...g, confirmed: !g.confirmed } : g));
+  };
+
+  // Seating Chart Handlers
+  const handleAddTable = (table: Table) => {
+    setTables(prev => [...prev, table]);
+  };
+
+  const handleRemoveTable = (tableId: string) => {
+    // Remove table
+    setTables(prev => prev.filter(t => t.id !== tableId));
+    // Unassign guests at that table
+    setGuests(prev => prev.map(g => 
+      g.assignedTableId === tableId 
+        ? { ...g, assignedTableId: undefined, assignedSeatIndex: undefined } 
+        : g
+    ));
+  };
+
+  const handleAssignGuestToSeat = (guestId: string, tableId: string, seatIndex: number) => {
+    setGuests(prev => {
+      // First, remove anyone else who might be in that seat (optional, or just overwrite)
+      const withoutOldTenant = prev.map(g => {
+        if (g.assignedTableId === tableId && g.assignedSeatIndex === seatIndex) {
+          return { ...g, assignedTableId: undefined, assignedSeatIndex: undefined };
+        }
+        return g;
+      });
+
+      // Now assign the new guest
+      return withoutOldTenant.map(g => {
+        if (g.id === guestId) {
+          return { ...g, assignedTableId: tableId, assignedSeatIndex: seatIndex };
+        }
+        return g;
+      });
+    });
+  };
+
+  const handleUnassignGuest = (guestId: string) => {
+    setGuests(prev => prev.map(g => 
+      g.id === guestId 
+        ? { ...g, assignedTableId: undefined, assignedSeatIndex: undefined }
+        : g
+    ));
+  };
+
+
   const handleExportBackup = () => {
     const data = {
       expenses,
+      guests,
+      tables,
+      invitation,
+      websiteData,
+      giftItems,
       savingsPlan,
       exportDate: new Date().toISOString()
     };
@@ -122,6 +247,21 @@ const App: React.FC = () => {
         if (parsed.expenses && Array.isArray(parsed.expenses)) {
           setExpenses(parsed.expenses);
         }
+        if (parsed.guests && Array.isArray(parsed.guests)) {
+          setGuests(parsed.guests);
+        }
+        if (parsed.tables && Array.isArray(parsed.tables)) {
+            setTables(parsed.tables);
+        }
+        if (parsed.invitation) {
+          setInvitation(parsed.invitation);
+        }
+        if (parsed.websiteData) {
+          setWebsiteData(parsed.websiteData);
+        }
+        if (parsed.giftItems) {
+            setGiftItems(parsed.giftItems);
+        }
         if (parsed.savingsPlan) {
           setSavingsPlan(parsed.savingsPlan);
         }
@@ -135,33 +275,28 @@ const App: React.FC = () => {
   };
 
   const exportToCSV = () => {
-    // Definição das colunas
     const headers = ['Nome', 'Categoria', 'Data Vencimento', 'Status', 'Custo Estimado (R$)', 'Sinal Necessário (R$)', 'Valor Pago (R$)', 'Observações'];
     
-    // Sort before export for better organization
     const sortedForExport = [...expenses].sort((a, b) => {
         if (!a.dueDate) return 1;
         if (!b.dueDate) return -1;
         return a.dueDate.localeCompare(b.dueDate);
     });
 
-    // Mapeamento dos dados com formatação específica para Excel BR
     const rows = sortedForExport.map(e => {
       const formattedDate = e.dueDate ? new Date(e.dueDate).toLocaleDateString('pt-BR') : '-';
       return [
-        `"${e.name.replace(/"/g, '""')}"`, // Escapa aspas duplas
+        `"${e.name.replace(/"/g, '""')}"`, 
         `"${e.category}"`,
-        `"${formattedDate}"`, // Nova coluna de data
+        `"${formattedDate}"`, 
         `"${e.status}"`,
-        `"${e.estimatedCost.toFixed(2).replace('.', ',')}"`, // Formato numérico com vírgula
-        `"${(e.depositRequired || 0).toFixed(2).replace('.', ',')}"`, // Sinal
-        `"${e.paidAmount.toFixed(2).replace('.', ',')}"`, // Formato numérico com vírgula
-        `"${(e.notes || '').replace(/"/g, '""').replace(/\n/g, ' ')}"` // Remove quebras de linha das notas para manter integridade da linha
+        `"${e.estimatedCost.toFixed(2).replace('.', ',')}"`, 
+        `"${(e.depositRequired || 0).toFixed(2).replace('.', ',')}"`,
+        `"${e.paidAmount.toFixed(2).replace('.', ',')}"`, 
+        `"${(e.notes || '').replace(/"/g, '""').replace(/\n/g, ' ')}"` 
       ];
     });
 
-    // Adiciona BOM (\uFEFF) para garantir que o Excel reconheça os acentos (UTF-8)
-    // Usa ponto e vírgula (;) como separador, padrão no Excel em português
     const csvContent = '\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -229,7 +364,6 @@ const App: React.FC = () => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
   };
 
-  // Sort expenses for display: Dates first (earliest to latest), then those without dates
   const sortedExpenses = [...expenses].sort((a, b) => {
     if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate);
     if (a.dueDate) return -1;
@@ -277,6 +411,61 @@ const App: React.FC = () => {
             >
               <List size={18} />
               Despesas
+            </button>
+             <button
+              onClick={() => setActiveTab('guests')}
+              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                activeTab === 'guests'
+                  ? 'border-rose-500 text-rose-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <Users size={18} />
+              Lista de Convidados
+            </button>
+             <button
+              onClick={() => setActiveTab('seating')}
+              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                activeTab === 'seating'
+                  ? 'border-rose-500 text-rose-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <Armchair size={18} />
+              Mesas
+            </button>
+            <button
+              onClick={() => setActiveTab('invites')}
+              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                activeTab === 'invites'
+                  ? 'border-rose-500 text-rose-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <Palette size={18} />
+              Convites
+            </button>
+             <button
+              onClick={() => setActiveTab('registry')}
+              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                activeTab === 'registry'
+                  ? 'border-rose-500 text-rose-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <Gift size={18} />
+              Lista de Presentes
+            </button>
+            <button
+              onClick={() => setActiveTab('website')}
+              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                activeTab === 'website'
+                  ? 'border-rose-500 text-rose-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <Globe size={18} />
+              Site dos Noivos
             </button>
             <button
               onClick={() => setActiveTab('planning')}
@@ -482,6 +671,56 @@ const App: React.FC = () => {
               </div>
             )}
           </div>
+        )}
+        
+        {/* TAB: GUESTS */}
+        {activeTab === 'guests' && (
+           <GuestManager 
+             guests={guests} 
+             onAddGuest={handleAddGuest} 
+             onRemoveGuest={handleRemoveGuest} 
+             onToggleConfirmation={handleToggleGuestConfirmation}
+           />
+        )}
+
+        {/* TAB: SEATING CHART */}
+        {activeTab === 'seating' && (
+          <SeatingChart 
+            guests={guests} 
+            tables={tables}
+            onAddTable={handleAddTable}
+            onRemoveTable={handleRemoveTable}
+            onAssignGuest={handleAssignGuestToSeat}
+            onUnassignGuest={handleUnassignGuest}
+          />
+        )}
+        
+        {/* TAB: INVITATION CREATOR */}
+        {activeTab === 'invites' && (
+          <InvitationCreator 
+            data={invitation}
+            onUpdate={setInvitation}
+          />
+        )}
+
+        {/* TAB: GIFT REGISTRY */}
+        {activeTab === 'registry' && (
+          <GiftRegistryManager 
+            items={giftItems}
+            guestCount={guests.length}
+            onAddItem={handleAddGiftItem}
+            onUpdateItem={handleUpdateGiftItem}
+            onRemoveItem={handleRemoveGiftItem}
+          />
+        )}
+
+        {/* TAB: WEBSITE BUILDER */}
+        {activeTab === 'website' && (
+          <WebsiteBuilder 
+            data={websiteData}
+            giftItems={giftItems}
+            onUpdate={setWebsiteData}
+          />
         )}
 
         {/* TAB: PLANNING */}
