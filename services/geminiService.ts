@@ -45,3 +45,42 @@ export const askWeddingAdvisor = async (
     return "Ocorreu um erro ao consultar o assistente. Tente novamente mais tarde.";
   }
 };
+
+export const generateWeddingImage = async (prompt: string): Promise<string | null> => {
+  const client = getClient();
+  if (!client) {
+    console.error("API Key missing");
+    return null;
+  }
+
+  try {
+    // Usando gemini-2.5-flash-image conforme as diretrizes do sistema para geração de imagens
+    const response = await client.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [
+          {
+            text: `Wedding concept art, photorealistic, high quality: ${prompt}`,
+          },
+        ],
+      },
+      config: {
+        // Image generation parameters if needed, or defaults
+      }
+    });
+
+    // Iterar pelas partes para encontrar a imagem (inlineData)
+    if (response.candidates && response.candidates[0].content.parts) {
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData && part.inlineData.data) {
+          return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+        }
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Gemini Image Generation Error:", error);
+    throw error;
+  }
+};

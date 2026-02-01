@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GiftItem } from '../types';
-import { Plus, Edit2, Trash2, Gift, DollarSign, Image as ImageIcon, ShoppingBag, X, Save, Wand2, PieChart } from 'lucide-react';
+import { Plus, Edit2, Trash2, Gift, DollarSign, Image as ImageIcon, ShoppingBag, X, Save, Wand2, PieChart, Info } from 'lucide-react';
 
 interface GiftRegistryManagerProps {
   items: GiftItem[];
@@ -21,6 +21,9 @@ export const GiftRegistryManager: React.FC<GiftRegistryManagerProps> = ({ items,
   const [category, setCategory] = useState('');
   const [isCrowdfunding, setIsCrowdfunding] = useState(false);
   const [shares, setShares] = useState('1');
+
+  // Platform Fee Configuration (This represents the Fintech Business Model)
+  const PLATFORM_FEE_PERCENTAGE = 0.0599; // 5.99% fee
 
   const resetForm = () => {
     setName('');
@@ -151,9 +154,13 @@ export const GiftRegistryManager: React.FC<GiftRegistryManagerProps> = ({ items,
       alert(`${newItems.length} sugestões de presentes foram adicionadas! Itens mais caros foram divididos em cotas.`);
   };
 
+  const totalValue = items.reduce((acc, curr) => acc + curr.price, 0);
+  const platformFees = totalValue * PLATFORM_FEE_PERCENTAGE;
+  const netValue = totalValue - platformFees;
+
   return (
     <div className="space-y-6">
-       {/* Header with Stats */}
+       {/* Header with Stats (Updated to show Fees) */}
        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
                <div className="p-3 bg-rose-100 text-rose-600 rounded-full">
@@ -164,20 +171,48 @@ export const GiftRegistryManager: React.FC<GiftRegistryManagerProps> = ({ items,
                    <h3 className="text-2xl font-bold text-slate-800">{items.length}</h3>
                </div>
            </div>
-           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-               <div className="p-3 bg-emerald-100 text-emerald-600 rounded-full">
+           
+           {/* Revenue Card for Couple (Net Value) */}
+           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 relative overflow-hidden group">
+               <div className="p-3 bg-emerald-100 text-emerald-600 rounded-full z-10">
                    <DollarSign size={24} />
                </div>
-               <div>
-                   <p className="text-sm text-slate-500">Valor Total Estimado</p>
+               <div className="z-10">
+                   <div className="flex items-center gap-1">
+                     <p className="text-sm text-slate-500">Valor Líquido a Receber</p>
+                     <div className="group/tooltip relative">
+                       <Info size={14} className="text-slate-400 cursor-help" />
+                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-slate-800 text-white text-xs p-2 rounded shadow-lg opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity">
+                         Já descontada a taxa de operação de {(PLATFORM_FEE_PERCENTAGE * 100).toFixed(2)}%.
+                       </div>
+                     </div>
+                   </div>
                    <h3 className="text-2xl font-bold text-emerald-600">
-                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(items.reduce((acc, curr) => acc + curr.price, 0))}
+                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(netValue)}
                    </h3>
+                   <p className="text-xs text-slate-400 mt-1">
+                     Taxas: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(platformFees)}
+                   </p>
+               </div>
+               {/* Visual indicator of fee */}
+               <div className="absolute right-0 top-0 bottom-0 bg-slate-100 w-2">
+                 <div className="bg-rose-500 w-full" style={{ height: `${(PLATFORM_FEE_PERCENTAGE) * 100}%` }}></div>
                </div>
            </div>
-           <div className="bg-gradient-to-br from-rose-500 to-rose-600 p-6 rounded-xl shadow-md text-white flex flex-col justify-center items-start">
-               <h3 className="font-bold text-lg mb-1">Dica</h3>
-               <p className="text-sm opacity-90">Divida itens caros em cotas para facilitar a compra pelos convidados.</p>
+
+           <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 p-6 rounded-xl shadow-md text-white flex flex-col justify-center items-start relative overflow-hidden">
+               <div className="relative z-10">
+                  <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
+                    <Wand2 size={18} /> Reduza as Taxas
+                  </h3>
+                  <p className="text-sm opacity-90 mb-2">Assine o plano Premium e reduza a taxa para 3.99%.</p>
+                  <button className="text-xs bg-white text-indigo-700 px-3 py-1 rounded-full font-bold hover:bg-indigo-50">
+                    Saber Mais
+                  </button>
+               </div>
+               <div className="absolute -right-4 -bottom-4 text-white/10">
+                 <PieChart size={100} />
+               </div>
            </div>
        </div>
 

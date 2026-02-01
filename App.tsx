@@ -7,18 +7,28 @@ import { SeatingChart } from './components/SeatingChart';
 import { InvitationCreator } from './components/InvitationCreator';
 import { WebsiteBuilder } from './components/WebsiteBuilder';
 import { GiftRegistryManager } from './components/GiftRegistryManager';
-import { Expense, ExpenseCategory, ExpenseStatus, SavingsPlan, Guest, GuestSide, Table, TableShape, InvitationData, WebsiteData, GiftItem } from './types';
-import { Heart, LayoutDashboard, List, Calendar, MessageSquareText, Download, Trash2, Edit2, Plus, Calculator, CheckCircle2, Check, DollarSign, Clock, Users, Armchair, Palette, Globe, Gift } from 'lucide-react';
+import { TaskManager } from './components/TaskManager';
+import { VendorMarketplace } from './components/VendorMarketplace';
+import { VendorPortal } from './components/VendorPortal';
+import { PremiumModal } from './components/PremiumModal';
+import { MoodBoard } from './components/MoodBoard';
+import { Expense, ExpenseCategory, ExpenseStatus, SavingsPlan, Guest, GuestSide, Table, TableShape, InvitationData, WebsiteData, GiftItem, Task, Vendor, Inspiration } from './types';
+import { Heart, LayoutDashboard, List, Calendar, MessageSquareText, Download, Trash2, Edit2, Plus, Calculator, CheckCircle2, Check, DollarSign, Clock, Users, Armchair, Palette, Globe, Gift, ListTodo, Store, Crown, Briefcase, Sparkles } from 'lucide-react';
 
 const STORAGE_KEY = 'wedding_planner_data';
 
 const App: React.FC = () => {
+  // Global Mode State: Couple (Client) vs Vendor (Business)
+  const [userType, setUserType] = useState<'couple' | 'vendor'>('couple');
+
   // State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'guests' | 'seating' | 'invites' | 'website' | 'registry' | 'planning' | 'advisor'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'tasks' | 'guests' | 'seating' | 'invites' | 'website' | 'registry' | 'planning' | 'advisor' | 'vendors' | 'moodboard'>('dashboard');
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [guests, setGuests] = useState<Guest[]>([]);
   const [tables, setTables] = useState<Table[]>([]);
   const [giftItems, setGiftItems] = useState<GiftItem[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [inspirations, setInspirations] = useState<Inspiration[]>([]);
   const [invitation, setInvitation] = useState<InvitationData>({
     brideName: 'Maria',
     groomName: 'João',
@@ -44,6 +54,10 @@ const App: React.FC = () => {
     ]
   });
   
+  // Subscription State (Monetization)
+  const [isPremium, setIsPremium] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+
   // Change default mode to 'calculate_amount' as requested
   const [savingsPlan, setSavingsPlan] = useState<SavingsPlan>({
     currentSavings: 0,
@@ -63,6 +77,8 @@ const App: React.FC = () => {
         setExpenses(parsed.expenses || []);
         setGuests(parsed.guests || []);
         setTables(parsed.tables || []);
+        if (parsed.tasks) setTasks(parsed.tasks);
+        if (parsed.inspirations) setInspirations(parsed.inspirations);
         if (parsed.invitation) {
           setInvitation(parsed.invitation);
         }
@@ -83,6 +99,7 @@ const App: React.FC = () => {
           targetDate: new Date().toISOString().split('T')[0],
           mode: 'calculate_amount'
         });
+        if (parsed.isPremium) setIsPremium(parsed.isPremium);
       } catch (e) {
         console.error("Failed to parse saved data", e);
       }
@@ -103,8 +120,8 @@ const App: React.FC = () => {
 
   // Save data on change
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ expenses, savingsPlan, guests, tables, invitation, websiteData, giftItems }));
-  }, [expenses, savingsPlan, guests, tables, invitation, websiteData, giftItems]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ expenses, savingsPlan, guests, tables, invitation, websiteData, giftItems, tasks, inspirations, isPremium }));
+  }, [expenses, savingsPlan, guests, tables, invitation, websiteData, giftItems, tasks, inspirations, isPremium]);
 
   // Handlers
   const handleSaveExpense = (expense: Expense) => {
@@ -144,6 +161,43 @@ const App: React.FC = () => {
     }));
   };
 
+  // Task Handlers
+  const handleAddTask = (task: Task) => setTasks(prev => [...prev, task]);
+  const handleUpdateTask = (task: Task) => setTasks(prev => prev.map(t => t.id === task.id ? task : t));
+  const handleDeleteTask = (id: string) => setTasks(prev => prev.filter(t => t.id !== id));
+  
+  const handleGenerateDefaultTasks = () => {
+      const defaults: Partial<Task>[] = [
+          { title: 'Definir Orçamento Total', category: 'Planning', priority: 'high' },
+          { title: 'Fazer Lista de Convidados Inicial', category: 'Guests', priority: 'high' },
+          { title: 'Reservar Local da Cerimônia e Festa', category: 'Venue', priority: 'high' },
+          { title: 'Contratar Assessoria/Cerimonial', category: 'Planning', priority: 'medium' },
+          { title: 'Escolher Fotógrafo e Videomaker', category: 'Vendors', priority: 'medium' },
+          { title: 'Definir Cardápio do Buffet', category: 'Catering', priority: 'medium' },
+          { title: 'Escolher Vestido da Noiva', category: 'Attire', priority: 'medium' },
+          { title: 'Enviar Save the Date', category: 'Invites', priority: 'medium' },
+          { title: 'Contratar Decoração', category: 'Decor', priority: 'medium' },
+          { title: 'Contratar DJ ou Banda', category: 'Music', priority: 'medium' },
+          { title: 'Encomendar Convites', category: 'Invites', priority: 'medium' },
+          { title: 'Escolher Traje do Noivo', category: 'Attire', priority: 'low' },
+          { title: 'Comprar Alianças', category: 'Ceremony', priority: 'medium' },
+          { title: 'Definir Lembrancinhas', category: 'Gifts', priority: 'low' },
+          { title: 'Agendar Teste de Maquiagem/Cabelo', category: 'Beauty', priority: 'low' },
+      ];
+
+      const newTasks: Task[] = defaults.map(d => ({
+          id: crypto.randomUUID(),
+          title: d.title!,
+          category: d.category!,
+          priority: d.priority as any,
+          completed: false,
+          deadline: '' 
+      }));
+
+      setTasks(prev => [...prev, ...newTasks]);
+      alert(`${newTasks.length} tarefas adicionadas ao seu checklist!`);
+  };
+
   // Gift Registry Handlers
   const handleAddGiftItem = (item: GiftItem) => {
       setGiftItems(prev => [...prev, item]);
@@ -153,6 +207,14 @@ const App: React.FC = () => {
   };
   const handleRemoveGiftItem = (id: string) => {
       setGiftItems(prev => prev.filter(i => i.id !== id));
+  };
+
+  // Inspiration Handlers
+  const handleAddInspiration = (item: Inspiration) => {
+    setInspirations(prev => [item, ...prev]);
+  };
+  const handleRemoveInspiration = (id: string) => {
+    setInspirations(prev => prev.filter(i => i.id !== id));
   };
 
   // Guest Handlers
@@ -211,6 +273,11 @@ const App: React.FC = () => {
         : g
     ));
   };
+  
+  // Vendor Handler (B2B Lead Generation Sim)
+  const handleContactVendor = (vendor: Vendor) => {
+      alert(`Solicitação de orçamento enviada para ${vendor.name}!\n\n(Simulação: O fornecedor receberia seus dados e o app cobraria por este lead.)`);
+  };
 
 
   const handleExportBackup = () => {
@@ -218,10 +285,13 @@ const App: React.FC = () => {
       expenses,
       guests,
       tables,
+      tasks,
       invitation,
       websiteData,
       giftItems,
       savingsPlan,
+      inspirations,
+      isPremium,
       exportDate: new Date().toISOString()
     };
     
@@ -253,6 +323,12 @@ const App: React.FC = () => {
         if (parsed.tables && Array.isArray(parsed.tables)) {
             setTables(parsed.tables);
         }
+        if (parsed.tasks && Array.isArray(parsed.tasks)) {
+            setTasks(parsed.tasks);
+        }
+        if (parsed.inspirations) {
+            setInspirations(parsed.inspirations);
+        }
         if (parsed.invitation) {
           setInvitation(parsed.invitation);
         }
@@ -264,6 +340,9 @@ const App: React.FC = () => {
         }
         if (parsed.savingsPlan) {
           setSavingsPlan(parsed.savingsPlan);
+        }
+        if (parsed.isPremium) {
+            setIsPremium(parsed.isPremium);
         }
         alert('Dados restaurados com sucesso!');
       } catch (error) {
@@ -371,8 +450,39 @@ const App: React.FC = () => {
     return 0;
   });
 
+  // If we are in Vendor Mode, render Vendor Portal
+  if (userType === 'vendor') {
+      return (
+          <div className="relative">
+             <div className="absolute top-4 right-4 z-50">
+                 <button 
+                  onClick={() => setUserType('couple')}
+                  className="bg-white/90 backdrop-blur text-rose-600 px-4 py-2 rounded-full font-bold shadow-md hover:bg-white flex items-center gap-2 text-sm border border-rose-100"
+                 >
+                     <Heart size={16} fill="currentColor" />
+                     Voltar para Área dos Noivos
+                 </button>
+             </div>
+             <VendorPortal />
+          </div>
+      );
+  }
+
+  // COUPLE MODE (Standard App)
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans">
+      
+      {/* Monetization Modal */}
+      <PremiumModal 
+        isOpen={showPremiumModal} 
+        onClose={() => setShowPremiumModal(false)} 
+        onUpgrade={() => {
+            setIsPremium(true);
+            setShowPremiumModal(false);
+            alert("Parabéns! Você agora é Premium e desbloqueou todas as funcionalidades.");
+        }} 
+      />
+
       {/* Header */}
       <header className="bg-white border-b border-rose-100 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -380,8 +490,32 @@ const App: React.FC = () => {
             <Heart className="fill-current" size={28} />
             <h1 className="text-xl font-bold tracking-tight text-slate-900">Casamento<span className="text-rose-600">Planner</span> AI</h1>
           </div>
-          <div className="text-xs md:text-sm text-slate-500 hidden md:block">
-             Planeje seu sonho, controle seu bolso
+          <div className="flex items-center gap-4">
+             {/* Role Switcher */}
+             <button 
+                onClick={() => setUserType('vendor')}
+                className="hidden md:flex items-center gap-2 text-slate-500 hover:text-slate-800 text-sm font-medium px-3 py-1 hover:bg-slate-50 rounded-full transition-colors"
+                title="Acessar painel de empresas"
+             >
+                 <Briefcase size={16} />
+                 Sou Fornecedor
+             </button>
+
+             {/* Premium Badge / Upsell */}
+             {!isPremium ? (
+                 <button 
+                    onClick={() => setShowPremiumModal(true)}
+                    className="hidden md:flex items-center gap-2 bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 px-3 py-1.5 rounded-full text-xs font-bold hover:brightness-105 transition-all shadow-sm"
+                 >
+                     <Crown size={14} />
+                     Seja Premium
+                 </button>
+             ) : (
+                 <div className="hidden md:flex items-center gap-2 bg-slate-900 text-amber-300 px-3 py-1.5 rounded-full text-xs font-bold border border-amber-500/30">
+                     <Crown size={14} />
+                     Membro VIP
+                 </div>
+             )}
           </div>
         </div>
       </header>
@@ -400,6 +534,39 @@ const App: React.FC = () => {
             >
               <LayoutDashboard size={18} />
               Visão Geral
+            </button>
+            <button
+              onClick={() => setActiveTab('moodboard')}
+              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                activeTab === 'moodboard'
+                  ? 'border-rose-500 text-rose-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <Sparkles size={18} />
+              Inspirações
+            </button>
+            <button
+              onClick={() => setActiveTab('vendors')}
+              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                activeTab === 'vendors'
+                  ? 'border-rose-500 text-rose-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <Store size={18} />
+              Fornecedores
+            </button>
+            <button
+              onClick={() => setActiveTab('tasks')}
+              className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                activeTab === 'tasks'
+                  ? 'border-rose-500 text-rose-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <ListTodo size={18} />
+              Tarefas
             </button>
             <button
               onClick={() => setActiveTab('expenses')}
@@ -421,7 +588,7 @@ const App: React.FC = () => {
               }`}
             >
               <Users size={18} />
-              Lista de Convidados
+              Convidados
             </button>
              <button
               onClick={() => setActiveTab('seating')}
@@ -454,7 +621,7 @@ const App: React.FC = () => {
               }`}
             >
               <Gift size={18} />
-              Lista de Presentes
+              Presentes
             </button>
             <button
               onClick={() => setActiveTab('website')}
@@ -465,7 +632,7 @@ const App: React.FC = () => {
               }`}
             >
               <Globe size={18} />
-              Site dos Noivos
+              Site
             </button>
             <button
               onClick={() => setActiveTab('planning')}
@@ -476,7 +643,7 @@ const App: React.FC = () => {
               }`}
             >
               <Calculator size={18} />
-              Planejamento
+              Planos
             </button>
             <button
               onClick={() => setActiveTab('advisor')}
@@ -487,7 +654,7 @@ const App: React.FC = () => {
               }`}
             >
               <MessageSquareText size={18} />
-              Consultora IA
+              IA
             </button>
           </nav>
         </div>
@@ -504,6 +671,33 @@ const App: React.FC = () => {
             planningResult={plannerData} 
             onExportBackup={handleExportBackup}
             onImportBackup={handleImportBackup}
+          />
+        )}
+
+        {/* TAB: MOODBOARD (New) */}
+        {activeTab === 'moodboard' && (
+           <MoodBoard 
+             inspirations={inspirations} 
+             onAdd={handleAddInspiration} 
+             onRemove={handleRemoveInspiration} 
+             isPremium={isPremium}
+           />
+        )}
+
+        {/* TAB: VENDORS (B2B Marketplace) */}
+        {activeTab === 'vendors' && (
+           <VendorMarketplace onContactVendor={handleContactVendor} />
+        )}
+
+        {/* TAB: TASKS */}
+        {activeTab === 'tasks' && (
+          <TaskManager 
+            tasks={tasks}
+            weddingDate={savingsPlan.targetDate}
+            onAddTask={handleAddTask}
+            onUpdateTask={handleUpdateTask}
+            onDeleteTask={handleDeleteTask}
+            onGenerateDefaults={handleGenerateDefaultTasks}
           />
         )}
 
